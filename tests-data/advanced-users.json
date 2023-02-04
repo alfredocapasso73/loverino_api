@@ -1,0 +1,13 @@
+[
+  {"name":  "Alfredo","email":  "alfredo","age": "49","search_gender": "f","search_min_age": "25","search_max_age": "35", "city":  "Stockholm", "search_distance":  "all", "gender":  "m", "height":  176, "body_type":  "m"}
+,{"name":  "William","email":  "william","age": "23","search_gender": "f","search_min_age": "18","search_max_age": "30", "city":  "Stockholm", "search_distance":  "close", "gender":  "m", "height":  183, "body_type":  "m"}
+,{"name":  "Gustaf","email":  "gustaf","age": "32","search_gender": "f","search_min_age": "18","search_max_age": "35", "city":  "Göteborg", "search_distance":  "all", "gender":  "m", "height":  177, "body_type":  "xl"}
+,{"name":  "Francp","email":  "franco","age": "42","search_gender": "f","search_min_age": "25","search_max_age": "50", "city":  "Stockholm", "search_distance":  "all", "gender":  "m", "height":  171, "body_type":  "l"}
+,{"name":  "Angelo","email":  "angelo","age": "42","search_gender": "f","search_min_age": "18","search_max_age": "30", "city":  "Stockholm", "search_distance":  "all", "gender":  "m", "height":  178, "body_type":  "m"}
+,{"name":  "Vincenzo","email":  "vincenzo","age": "40","search_gender": "f","search_min_age": "18","search_max_age": "25", "city":  "Stockholm", "search_distance":  "all", "gender":  "m", "height":  167, "body_type":  "m"}
+,{"name":  "Niklas","email":  "niklas","age": "48","search_gender": "f","search_min_age": "25","search_max_age": "35", "city":  "Stockholm", "search_distance":  "all", "gender":  "m", "height":  177, "body_type":  "s"}
+,{"name":  "Enzo","email":  "enzo","age": "57","search_gender": "f","search_min_age": "40","search_max_age": "60", "city":  "Stockholm", "search_distance":  "close", "gender":  "m", "height":  170, "body_type":  "l"}
+,{"name":  "Simon","email":  "simon","age": "34","search_gender": "f","search_min_age": "25","search_max_age": "35", "city":  "Stockholm", "search_distance":  "close", "gender":  "m", "height":  173, "body_type":  "m"}
+,{"name":  "Peter","email":  "peter","age": "54","search_gender": "f","search_min_age": "40","search_max_age": "60", "city":  "Stockholm", "search_distance":  "close", "gender":  "m", "height":  190, "body_type":  "l"}
+,{"name":  "IsabellaPerfectAge","email":  "isabellaPerfectAge","age": "26","search_gender": "m","search_min_age": "40","search_max_age": "50", "city":  "Stockholm", "search_distance":  "close", "gender":  "f", "height":  170, "body_type":  "m"}
+]

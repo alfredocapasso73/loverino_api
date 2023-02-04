@@ -1,0 +1,6 @@
+[
+  {"name":  "Rematch1","email":  "Rematch1","age": "49","search_gender": "f","search_min_age": "20","search_max_age": "60", "city":  "Stockholm", "search_distance":  "all", "gender":  "m", "height":  176, "body_type":  "m"}
+,{"name":  "Rematch2","email":  "Rematch2","age": "23","search_gender": "f","search_min_age": "18","search_max_age": "30", "city":  "Stockholm", "search_distance":  "close", "gender":  "m", "height":  183, "body_type":  "m"}
+,{"name":  "Rematch3","email":  "Rematch3","age": "32","search_gender": "f","search_min_age": "18","search_max_age": "35", "city":  "Göteborg", "search_distance":  "all", "gender":  "m", "height":  177, "body_type":  "xl"}
+,{"name":  "Rematch4","email":  "Rematch4","age": "42","search_gender": "f","search_min_age": "25","search_max_age": "50", "city":  "Stockholm", "search_distance":  "all", "gender":  "m", "height":  171, "body_type":  "l"}
+]

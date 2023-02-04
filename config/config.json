@@ -1,0 +1,11 @@
+{
+  "key1": "value1",
+  "key2": "value2",
+  "picture_name_format": [
+    "picture","small-picture","tiny-picture"
+  ],
+  "max_number_of_suggestion": 4,
+  "description_max_number_of_chars": 500,
+  "number_of_hours_between_suggestions": 6,
+  "number_of_hours_between_suggestions_for_paying_users": 3
+}
