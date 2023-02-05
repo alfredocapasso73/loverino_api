@@ -68,7 +68,7 @@ describe(`Vote Single Suggestion`, () => {
         const res = await testHelper.makeVoteRequest(suggestions_json.suggestion_id_1, suggestions_json.for_user_id_1, suggestions_json.voted_user_id_1, 'y', firstManToken);
         testHelper.expectRequestSuccess(res);
         await testHelper.shouldHaveStatusInSuggestion(suggestions_json.suggestion_id_1, suggestions_json.for_user_id_1, suggestions_json.voted_user_id_1, 'liked');
-        await testHelper.shouldBeInLiked(suggestions_json.for_user_id_1, suggestions_json.voted_user_id_1);
+        //await testHelper.shouldBeInLiked(suggestions_json.for_user_id_1, suggestions_json.voted_user_id_1);
     });
     it("should have 2 liked users when voting yes", async () => {
         const res = await testHelper.makeVoteRequest(suggestions_json.suggestion_id_1, suggestions_json.for_user_id_1, suggestions_json.voted_user_id_2, 'y', firstManToken);

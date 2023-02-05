@@ -47,10 +47,8 @@ exports.signinByEmail = async (email) => {
 }
 
 exports.beforeAll = async () => {
-    await mongoose.connect(`mongodb+srv://monogomic:MSL7IHt6I7VWJFrN@cluster0.bgduwkc.mongodb.net/${process.env.MONGODB_TEST_URI}`, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    });
+    mongoose.set('strictQuery', false);
+    await mongoose.connect(process.env.MONGO_DB, {useNewUrlParser: true,useUnifiedTopology: true,});
 }
 
 exports.getRandomNumberOfCharacters = (nr) => {
@@ -381,7 +379,8 @@ exports.shouldHaveStatusInSuggestion = async (suggestion_id, for_user_id, voted_
 }
 
 exports.shouldBeInLiked = async (for_user_id, voted_user_id) => {
-    const where_found_in_liked_users = {"for_user_id": for_user_id, "$in": {"users": voted_user_id}};
+    //const where_found_in_liked_users = {"for_user_id": for_user_id, "$in": {"users": voted_user_id}};
+    const where_found_in_liked_users = {"for_user_id": for_user_id, "users": {"$in": voted_user_id}};
     const found_in_liked_users = await LikedUser.findOne(where_found_in_liked_users);
     expect(found_in_liked_users).toHaveProperty("for_user_id");
 }

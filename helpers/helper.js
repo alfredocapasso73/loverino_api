@@ -2,6 +2,7 @@ const { v4: uuidv4 } = require('uuid');
 const config = require("../config/config.json");
 const fs = require("fs");
 const {clone} = require("nodemon/lib/utils");
+const User = require('../models/user');
 
 
 exports.generateUuid = () => {
@@ -26,6 +27,38 @@ exports.deleteTestImage = async (filename) => {
 exports.deleteTempImage = async (filename) => {
     const full_filename = `${process.env.IMAGE_UPLOAD_PATH}/picture-${filename}`;
     fs.unlinkSync(full_filename);
+};
+
+exports.deleteUserPicture = async (picture_id, user_id) => {
+    try{
+        const foundUser = await User.find({_id: user_id, pictures: { $elemMatch: {$eq: picture_id} }});
+        if(!foundUser.length){
+            throw 'image_not_found';
+        }
+        const deleteResult = await User.updateOne({ _id: user_id }, {
+            $pullAll: {pictures: [picture_id]},
+        });
+        if(!deleteResult.acknowledged){
+            throw 'something_went_wrong';
+        }
+        const original_filename = `${process.env.IMAGE_UPLOAD_PATH}/picture-${picture_id}`;
+        const tiny_filename = `${process.env.IMAGE_UPLOAD_PATH}/tiny-picture-${picture_id}`;
+        const small_filename = `${process.env.IMAGE_UPLOAD_PATH}/small-picture-${picture_id}`;
+
+        if(fs.existsSync(original_filename)){
+            fs.unlinkSync(original_filename);
+        }
+        if(fs.existsSync(tiny_filename)){
+            fs.unlinkSync(tiny_filename);
+        }
+        if(fs.existsSync(small_filename)){
+            fs.unlinkSync(small_filename);
+        }
+        return true;
+    }
+    catch(exception){
+        throw exception;
+    }
 };
 
 exports.deleteImages = async (filename) => {

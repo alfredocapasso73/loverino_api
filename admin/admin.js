@@ -8,6 +8,7 @@ const admin_helper = require('./admin_helper');
 
 const connectToDb = async () => {
     try{
+        mongoose.set('strictQuery', false);
         await mongoose.connect(process.env.MONGO_DB, {useNewUrlParser: true,useUnifiedTopology: true,});
         console.log(`Connected to database ${process.env.MONGO_DB}`);
     }
@@ -16,10 +17,20 @@ const connectToDb = async () => {
     }
 }
 
-const geo_install = async () => {
+const connectToTestDb = async () => {
+    try{
+        mongoose.set('strictQuery', false);
+        await mongoose.connect(process.env.MONGO_DB_TEST, {useNewUrlParser: true,useUnifiedTopology: true,});
+        console.log(`Connected to database ${process.env.MONGO_DB_TEST}`);
+    }
+    catch(ex){
+        throw new Error(`Could not connect to database: ${ex}`);
+    }
+}
+
+const installRegionsAndCities = async () => {
     try{
         console.log(`Running geo_install`);
-        await connectToDb();
         await Region.deleteMany({});
         await City.deleteMany({});
         console.log(`Deleted regions and cities`);
@@ -35,6 +46,28 @@ const geo_install = async () => {
             }
         }
         console.log(`Cities and regions inserted`);
+        process.exit(0);
+    }
+    catch(ex){
+        throw new Error(`Something went wrong: ${ex}`);
+    }
+}
+
+const geo_install_test = async () => {
+    try{
+        await connectToTestDb();
+        await installRegionsAndCities();
+        process.exit(0);
+    }
+    catch(ex){
+        throw new Error(`Something went wrong: ${ex}`);
+    }
+}
+
+const geo_install = async () => {
+    try{
+        await connectToDb();
+        await installRegionsAndCities();
         process.exit(0);
     }
     catch(ex){
@@ -73,12 +106,17 @@ const bots = async () => {
     }
 }
 
-const usage = 'usage: node admin.js [geo_install,clear_db, bots]';
+/*
+node admin.js bots
+ */
+
+const usage = 'usage: node admin.js [geo_install,geo_install_test,clear_db, bots]';
 if(process.argv < 3){
     return console.log(usage);
 }
 switch(process.argv[2]){
     case 'geo_install': geo_install().catch(console.log); break;
+    case 'geo_install_test': geo_install_test().catch(console.log); break;
     case 'clear_db': clear_db().catch(console.log); break;
     case 'bots': bots().catch(console.log); break;
     default: console.log(usage);

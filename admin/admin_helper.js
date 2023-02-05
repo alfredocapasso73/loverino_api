@@ -75,6 +75,7 @@ const  savePictures = async (nr) => {
             await sharp(from_name).resize(200, 200).toFile(to_dirname + '/small-picture-' + name);
             fs.copyFileSync(from_name, to_name);
             pictures.push(name);
+            console.log("name: ",name);
         }
         return pictures;
     }
@@ -109,9 +110,15 @@ exports.deleteBots = async () => {
         for await (const user of users_to_delete){
             const pictures = user.pictures;
             for await (const pic of pictures){
-                fs.unlinkSync(`${dirname}/picture-${pic}`);
-                fs.unlinkSync(`${dirname}/small-picture-${pic}`);
-                fs.unlinkSync(`${dirname}/tiny-picture-${pic}`);
+                if(fs.existsSync(`${dirname}/picture-${pic}`)){
+                    fs.unlinkSync(`${dirname}/picture-${pic}`);
+                }
+                if(fs.existsSync(`${dirname}/small-picture-${pic}`)){
+                    fs.unlinkSync(`${dirname}/small-picture-${pic}`);
+                }
+                if(fs.existsSync(`${dirname}/tiny-picture-${pic}`)){
+                    fs.unlinkSync(`${dirname}/tiny-picture-${pic}`);
+                }
             }
         }
 

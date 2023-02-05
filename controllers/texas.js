@@ -2,6 +2,11 @@ const jwt = require("jsonwebtoken");
 const User = require('../models/user');
 const Region = require('../models/region');
 const City = require('../models/city');
+const fs = require("fs");
+const helper = require('../helpers/helper');
+const path = require('path');
+const sharp = require('sharp');
+const multer  = require('multer');
 
 exports.authTest = async (req, res) => {
     try{
@@ -47,10 +52,14 @@ exports.getUsers = async (req, res) => {
     try{
         const users_per_page = req?.body?.users_per_page;
         const current_page = req.body.current_page;
+        const sort_by = req.body.sort_by;
+        const sort_dir = req.body.sort_dir;
         const where = {};
         const count = await User.count(where);
         const skip = (users_per_page*current_page)-(users_per_page);
-        const users = await User.find(where).limit(users_per_page).skip(skip).lean();
+        const sort = sort_dir === 'asc' ? {[sort_by]: 1} : {[sort_by]: -1};
+        console.log('sort:',sort);
+        const users = await User.find(where).limit(users_per_page).sort(sort).skip(skip).lean();
         for await (const user of users){
             const city = await City.findOne({_id: user.city});
             if(city){
@@ -62,6 +71,84 @@ exports.getUsers = async (req, res) => {
             }
         }
         return res.status(200).send({message: "ok", users: users, count: count});
+    }
+    catch(exception){
+        console.log(exception);
+        return res.status(500).send({message: exception});
+    }
+};
+
+exports.getUser = async (req, res) => {
+    try{
+        const user_id = req.params.id;
+        const user = await User.findOne({_id: user_id});
+        return res.status(200).send({message: "ok", user: user});
+    }
+    catch(exception){
+        console.log(exception);
+        return res.status(500).send({message: exception});
+    }
+};
+
+exports.saveUser = async (req, res) => {
+    try{
+        const user_param = req.body.user;
+        const user = await User.findOne({_id: user_param._id});
+        user.name = user_param.name;
+        user.active = user_param.active;
+        user.is_paying_user = user_param.is_paying_user;
+        user.search_distance = user_param.search_distance;
+        user.gender = user_param.gender;
+        user.search_gender = user_param.search_gender;
+        user.description = user_param.description;
+        user.birthday = user_param.birthday;
+        user.search_min_age = user_param.search_min_age;
+        user.search_max_age = user_param.search_max_age;
+        user.height = user_param.height;
+        user.body_type = user_param.body_type;
+        user.region = user_param.region;
+        user.city = user_param.city;
+        await user.save();
+        return res.status(200).send({message: "ok"});
+    }
+    catch(exception){
+        console.log(exception);
+        return res.status(500).send({message: exception});
+    }
+};
+
+exports.searchUser = async (req, res) => {
+    try{
+        const query = req.body.query;
+        const user_by_email = await User.findOne({email: query});
+        if(user_by_email){
+            return res.status(200).send({message: "ok", user: user_by_email});
+        }
+        const user_by_id = await User.findOne({_id: query});
+        if(user_by_id){
+            return res.status(200).send({message: "ok", user: user_by_id});
+        }
+        return res.status(500).send({message: "user_not_found"});
+    }
+    catch(exception){
+        console.log(exception);
+        return res.status(500).send({message: exception});
+    }
+};
+
+exports.deletePicture = async (req, res) => {
+    try{
+        if(!req.body.picture_id){
+            return res.status(500).json({error: 'no_image_sent'});
+        }
+        if(!req.body.user_id){
+            return res.status(500).json({error: 'no_user_id_sent'});
+        }
+        const picture_deleted = await helper.deleteUserPicture(req.body.picture_id, req.body.user_id);
+        if(!picture_deleted){
+            return res.status(500).json({error: 'unknown_error'});
+        }
+        return res.status(200).send({message: "ok"});
     }
     catch(exception){
         console.log(exception);

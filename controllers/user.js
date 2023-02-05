@@ -30,19 +30,9 @@ exports.getChatMessages = async (req, res) => {
     }
 };
 
-const encode_image = (data) => {
-    const str = data.reduce(function(a,b){ return a+String.fromCharCode(b) },'');
-    return btoa(str).replace(/.{76}(?=.)/g,'$&\n');
-}
-
 exports.publicTestImage = async (req, res) => {
     try{
         res.status(200).json({message: "publicTestImage"});
-        //console.log("encoded_image",encoded_image);
-        //return res.json(200).send({message: 'ok', encoded_image: encoded_image});
-        //const img = '<img src="data:image/png;base64,'+encoded_image+'" />';
-        //const html = '<html><body>'+img+'</body></html>';
-        //res.send(html);
     }
     catch(exception){
         return res.status(500).send({error2: exception});
@@ -762,6 +752,40 @@ const imageFilter = function(req, file, cb) {
     cb(null, true);
 };
 
+exports.uploadPictureAdmin = async (req, res) => {
+    let upload = multer({ storage: storage, fileFilter: imageFilter, limits: { fileSize: 2000000 }  }).single('picture');
+    upload(req, res, async function(err) {
+        const user_id = req.body.user_id;
+        if (err instanceof multer.MulterError) {
+            if(err.code === 'LIMIT_FILE_SIZE'){
+                return res.status(500).json({error: "file_too_large"});
+            }
+            else{
+                return res.status(500).json({error: err});
+            }
+        }
+        if (req.fileValidationError) {
+            return res.status(500).json({error: 'only_images_allowed'});
+        }
+        if (!req.file) {
+            console.log("req.file",req.file);
+            return res.status(500).json({error: 'no_image_sent?!?'});
+        }
+        if (err) {
+            return res.status(500).json({error: err});
+        }
+
+        try {
+            const pictures = await storeUserImage(req, user_id);
+            return res.json({message: "ok", pictures: pictures});
+        }
+        catch (error) {
+            console.error(error);
+            return res.status(500).json({error: 'image_thumb_error'});
+        }
+    });
+};
+
 exports.uploadPicture = async (req, res) => {
     let upload = multer({ storage: storage, fileFilter: imageFilter, limits: { fileSize: 2000000 }  }).single('picture');
     const user = req.user;
@@ -786,14 +810,8 @@ exports.uploadPicture = async (req, res) => {
         }
 
         try {
-            await sharp(req.file.path).resize(50, 50).toFile(process.env.IMAGE_UPLOAD_PATH + '/tiny-' + req.file.filename);
-            await sharp(req.file.path).resize(200, 200).toFile(process.env.IMAGE_UPLOAD_PATH + '/small-' + req.file.filename);
-            const filename = req.file.filename.replace('picture-', '');
-            await User.updateOne({_id: user._id},  {$addToSet: {"pictures": [filename]}});
-            const foundUser = await User.find({_id: user._id});
-            const pictures = foundUser[0].pictures;
-            await User.updateOne({_id: user._id},  {$set: {"current_step": "done", "status": "complete"}});
-            return res.json({message: "ok", filename: filename, pictures: pictures});
+            const pictures = await storeUserImage(req, user._id);
+            return res.json({message: "ok", pictures: pictures});
         }
         catch (error) {
             console.error(error);
@@ -802,31 +820,25 @@ exports.uploadPicture = async (req, res) => {
     });
 };
 
+const storeUserImage = async (req, user_id) => {
+    await sharp(req.file.path).resize(50, 50).toFile(process.env.IMAGE_UPLOAD_PATH + '/tiny-' + req.file.filename);
+    await sharp(req.file.path).resize(200, 200).toFile(process.env.IMAGE_UPLOAD_PATH + '/small-' + req.file.filename);
+    const filename = req.file.filename.replace('picture-', '');
+    await User.updateOne({_id: user_id},  {$addToSet: {"pictures": [filename]}});
+    const foundUser = await User.find({_id: user_id});
+    const pictures = foundUser[0].pictures;
+    await User.updateOne({_id: user_id},  {$set: {"current_step": "done", "status": "complete"}});
+    return pictures;
+}
+
 exports.deletePicture = async (req, res) => {
     try{
-        const picture_id = req.body.picture_id || '';
-        if(!picture_id){
-            return res.status(400).json({error: 'no_image_sent'});
+        if(!req.body.picture_id){
+            return res.status(500).json({error: 'no_image_sent'});
         }
-        const foundUser = await User.find({_id: req.user._id, pictures: { $elemMatch: {$eq: picture_id} }});
-        if(!foundUser.length){
-            return res.status(400).json({error: 'image_not_found'});
-        }
-        const deleteResult = await User.updateOne({ _id: req.user._id }, {
-            $pullAll: {pictures: [picture_id]},
-        });
-        if(!deleteResult.acknowledged){
-            return res.status(400).json({error: 'something_went_wrong'});
-        }
-        //await helper.deleteTempImage(picture_id);
-        await helper.deleteImages(picture_id);
-
-        const users = await User.find({_id: req.user._id});
-        if(users.length){
-            const user = users[0];
-            if(!user.pictures.length){
-                await User.updateOne({_id: user._id},  {$set: {"current_step": "step3", "status": "in_progress"}});
-            }
+        const picture_deleted = await helper.deleteUserPicture(req.body.picture_id, req.user._id);
+        if(!picture_deleted){
+            return res.status(500).json({error: 'unknown_error'});
         }
         return res.status(200).send({message: "ok"});
     }

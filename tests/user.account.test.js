@@ -17,14 +17,12 @@ const newUserPassword = `mynewpassword`;
 
 beforeAll(async () => {
     await testHelper.beforeAll();
-    //await mongoose.connect(process.env.MONGODB_TEST_URI);
 });
 
 afterAll(async () => {
     await User.deleteMany({});
     await mongoose.connection.close();
 });
-
 
 const uriPrefix = `${urls_config.URI_PREFIX}${urls_config.USER_URI_PREFIX}`;
 const urlPublicTest = `${uriPrefix}${urls_config.USER_PUBLIC_TEST}`;
@@ -45,6 +43,7 @@ let urlActivationFailure = `${urlActivationBasePath}`;
 let validUserId = undefined;
 let validRestorePasswordString = undefined;
 let validAccessToken = undefined;
+
 
 //TEST
 describe(`GET ${urlPublicTest}`, () => {
