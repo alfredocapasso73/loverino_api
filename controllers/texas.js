@@ -2,11 +2,8 @@ const jwt = require("jsonwebtoken");
 const User = require('../models/user');
 const Region = require('../models/region');
 const City = require('../models/city');
-const fs = require("fs");
 const helper = require('../helpers/helper');
-const path = require('path');
-const sharp = require('sharp');
-const multer  = require('multer');
+const image_handler = require('../helpers/image_handler');
 
 exports.authTest = async (req, res) => {
     try{
@@ -137,21 +134,9 @@ exports.searchUser = async (req, res) => {
 };
 
 exports.deletePicture = async (req, res) => {
-    try{
-        if(!req.body.picture_id){
-            return res.status(500).json({error: 'no_image_sent'});
-        }
-        if(!req.body.user_id){
-            return res.status(500).json({error: 'no_user_id_sent'});
-        }
-        const picture_deleted = await helper.deleteUserPicture(req.body.picture_id, req.body.user_id);
-        if(!picture_deleted){
-            return res.status(500).json({error: 'unknown_error'});
-        }
-        return res.status(200).send({message: "ok"});
-    }
-    catch(exception){
-        console.log(exception);
-        return res.status(500).send({message: exception});
-    }
+    return image_handler.deletePicture(req, res);
+};
+
+exports.uploadPictureAdmin = async (req, res) => {
+    return image_handler.uploadPicture(req, res);
 };
