@@ -30,6 +30,17 @@ const setMailHeaderAndFooter = () => {
     handlebars.registerPartial('footer', footer);
 }
 
+exports.mailTest = async () => {
+    setMailHeaderAndFooter();
+    const filename = path.join(__dirname, `/../templates/mail-test.handlebars`);
+    const emailTemplate = fs.readFileSync(filename, "utf-8");
+    const template = handlebars.compile(emailTemplate)
+    const html = (template({name: 'jeeg robot'}));
+    const to = 'alfredo.capasso@gmail.com';
+    const subject = 'predicato verbale';
+    await sendMail(html, subject, to);
+};
+
 exports.adminNewSignup = async (user) => {
     setMailHeaderAndFooter();
     const filename = path.join(__dirname, `/../templates/admin-new-user.handlebars`);

@@ -14,6 +14,10 @@ const mailer = require('../helpers/mailer');
 const user_handler = require('../helpers/user_handler');
 const image_handler = require('../helpers/image_handler');
 
+exports.mailTest = async (req, res) => {
+    await mailer.mailTest();
+    res.status(200).json({message: "mailTest"});
+};
 
 exports.getChatHistory = async (req, res) => {
     try{

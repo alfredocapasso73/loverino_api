@@ -8,6 +8,7 @@ const texasController = require("../controllers/texas");
 router.get(`/texas/authTest`, authJWT.verifyAdminToken, texasController.authTest);
 
 router.get(`/user/dbTest`, userController.dbTest);
+router.get(`/user/mailTest`, userController.mailTest);
 
 router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_REFRESH_TOKEN}`, userController.refreshToken);
 //router.get(`${urls_config.USER_URI_PREFIX}${urls_config.USER_GET_MESSAGE_HISTORY}`, userController.getChatHistory);
