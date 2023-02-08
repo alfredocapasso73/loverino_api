@@ -8,6 +8,7 @@ const texasController = require("../controllers/texas");
 router.get(`/texas/authTest`, authJWT.verifyAdminToken, texasController.authTest);
 
 router.get(`/user/dbTest`, userController.dbTest);
+router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_REFRESH_TOKEN}`, userController.refreshToken);
 router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_GET_MESSAGES}`, authJWT.verifyToken, userController.getChatMessages);
 router.get(`${urls_config.USER_URI_PREFIX}/foto`, userController.publicTestImage);
 router.get(`${urls_config.USER_URI_PREFIX}${urls_config.USER_GET_IMAGE}/:image`, userController.getImage);

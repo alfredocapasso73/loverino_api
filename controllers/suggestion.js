@@ -12,6 +12,7 @@ const WinnerUser = require('../models/winner_user');
 const ArchivedSuggestion = require('../models/archived_suggestion');
 const City = require("../models/city");
 const { v4: uuidv4 } = require('uuid');
+const suggestion_handler = require('../helpers/suggestion_handler');
 
 exports.getCompetition = async (req, res) => {
     try{
@@ -21,7 +22,7 @@ exports.getCompetition = async (req, res) => {
             return res.status(200).send({error: "no_current_competition"});
             //return res.status(500).send({error: 'no_current_competition'});
         }
-        return res.status(200).send({message: "ok", users: found_competition[0].users, competition_id: found_competition[0]._id});
+        return res.status(200).send({message: "ok", users: found_competition[0].users, competition_id: found_competition[0]._id, competition_status: found_competition[0].status});
     }
     catch(exception){
         console.log(exception);
@@ -58,26 +59,28 @@ exports.getSuggestions = async (req, res) => {
                     , next_suggestion_possible_within_minutes: next_suggestion_possible_within_minutes
                 });
         }
-        const suggestions = suggestion_result.suggestions.length ? suggestion_result.suggestions[0] : null;
+        let suggestions = suggestion_result.suggestions.length ? suggestion_result.suggestions[0] : null;
+        const return_users = [];
         if(suggestions?.users?.length){
             const users = suggestions.users;
             for await(const tmp_user of users){
-                //const found = await User.findOne({_id: tmp_user.user_id}).lean();
                 const found = await getUserPublicFields(tmp_user.user_id);
-                const city_name = await City.findOne({_id: found.city});
-                if(city_name){
-                    found.city_name = city_name.name;
+                if(found){
+                    const city_name = await City.findOne({_id: found.city});
+                    if(city_name){
+                        found.city_name = city_name.name;
+                    }
+                    tmp_user.data = found;
+                    return_users.push(tmp_user);
                 }
-                //delete found.password;
-                //delete found.activation_string;
-                //delete found.is_paying_user;
-                tmp_user.data = found;
             }
+            suggestions.users = return_users;
         }
         return res.status(200).send(
             {
                 message: "ok"
                 , suggestions: suggestions
+                //, suggestions: return_suggestions
                 , new_suggestions: suggestion_result.new_suggestions
             });
     }
@@ -181,6 +184,9 @@ exports.voteSuggestion = async (req, res) => {
 const getUserPublicFields = async (id) => {
     try{
         const user = await User.findOne({_id: id}).lean();
+        if(!user){
+            return null;
+        }
         delete user.password;
         delete user.activation_string;
         delete user.is_paying_user;
@@ -234,17 +240,19 @@ const checkIfMatch = async (req) => {
 }
 
 const setWinner = async (for_user_id, winner_id) => {
-    try{
+    await suggestion_handler.setWinner(for_user_id, winner_id);
+    /*try{
         const winner = new WinnerUser({for_user_id: for_user_id, winner_id: winner_id});
         await winner.save();
     }
     catch(exception){
         console.log('exception:',exception);
-    }
+    }*/
 }
 
 const setCompetitionCompleted = async (for_user_id) => {
-    try{
+    await suggestion_handler.setCompetitionCompleted(for_user_id);
+    /*try{
         await User.updateOne({_id: for_user_id}, {suggestions_completed_at: new Date()});
         await Suggestion.updateOne({for_user_id: for_user_id, "status": "voted"}, {status: "ended"});
         const suggestion_copy = await Suggestion.findOne({for_user_id: for_user_id, "status": "ended"}).lean();
@@ -257,11 +265,12 @@ const setCompetitionCompleted = async (for_user_id) => {
     }
     catch(exception){
         console.log('exception:',exception);
-    }
+    }*/
 }
 
 const setCompetitionArchived = async (competition_id) => {
-    try{
+    await suggestion_handler.setCompetitionArchived(competition_id);
+    /*try{
         const competition_copy = await Competition.findOne({_id: competition_id}).lean();
         delete competition_copy._id;
         delete competition_copy.__v;
@@ -271,7 +280,7 @@ const setCompetitionArchived = async (competition_id) => {
     }
     catch(exception){
         console.log('exception:',exception);
-    }
+    }*/
 }
 
 exports.postCompetition = async (req, res) => {

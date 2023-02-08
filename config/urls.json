@@ -7,6 +7,7 @@
   "USER_PRIVATE_TEST": "/privateTest",
   "USER_SIGNUP": "/signup",
   "USER_SIGNIN": "/signin",
+  "USER_REFRESH_TOKEN": "/refreshToken",
   "USER_FORGOT_PASSWORD": "/forgotPassword",
   "USER_ACTIVATE": "/activate",
   "USER_RESEND_ACTIVATION_LINK": "/resendActivationLink",

@@ -9,6 +9,7 @@ const Chat = require('../models/chat');
 const WinnerUser = require('../models/winner_user');
 const validation = require('../helpers/validation');
 const helper = require('../helpers/helper');
+const user_handler = require('../helpers/user_handler');
 const mailer = require('../helpers/mailer');
 const mongoose = require('mongoose');
 const fs = require('fs');
@@ -204,6 +205,36 @@ exports.activate = async (req, res) => {
     catch(exception){
         return res.status(500).send({message: exception});
     }
+};
+
+exports.refreshToken = async (req, res) => {
+    try{
+        if(validation.emptyParameter(req, 'user')){
+            return res.status(500).send({error: 'missing_parameter_user'});
+        }
+        if(validation.emptyParameter(req, 'refresh_token')){
+            return res.status(500).send({error: 'missing_parameter_refresh_token'});
+        }
+        jwt.verify(req.body.refresh_token, process.env.REFRESH_API_SECRET, async function (err, decode) {
+            if (err){
+                return res.status(500).send({message: "jwt_expired"});
+            }
+            try{
+                const user = await User.findOne({_id: req.body.user}).lean();
+                req.user = user;
+                const token = jwt.sign({id: user._id}, process.env.API_SECRET, {expiresIn: process.env.JWT_EXPIRATION});
+                res.status(200).json({message: "refreshed", accessToken: token});
+            }
+            catch(exception){
+                console.log("err:",err);
+                console.log("exception:",exception);
+                return res.status(500).send({message: "jwt_expired"});
+            }
+        });
+    }
+    catch(exception){
+        return res.status(500).send({message: exception});
+    }
 
 };
 
@@ -227,8 +258,9 @@ exports.signin = async (req, res) => {
         if(!user.active){
             return res.status(400).send({error: "not_activate_yet"});
         }
+        const token = jwt.sign({id: user._id}, process.env.API_SECRET, {expiresIn: process.env.JWT_EXPIRATION});
+        const refreshToken = jwt.sign({id: user._id}, process.env.REFRESH_API_SECRET, {expiresIn: process.env.REFRESH_JWT_EXPIRATION});
 
-        const token = jwt.sign({id: user.id}, process.env.API_SECRET, {expiresIn: process.env.JWT_EXPIRATION});
         const logged_in_at = Date.now();
         await User.updateOne({_id: user.id}, {$set: {access_token: token, logged_in_at: logged_in_at}});
         return res.status(200)
@@ -241,6 +273,7 @@ exports.signin = async (req, res) => {
                 },
                 message: "login_ok",
                 accessToken: token,
+                refreshToken: refreshToken
             });
     }
     catch(exception){
@@ -268,6 +301,7 @@ exports.closeAccount = async (req, res) => {
             }
         }
         await User.deleteOne({_id: req.user._id});
+        await user_handler.manageUserClosingAccount(req.user._id);
         return res.status(200).send({message: "ok"});
     }
     catch(exception){

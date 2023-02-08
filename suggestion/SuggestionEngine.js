@@ -49,7 +49,7 @@ const generateSuggestions = async (user) => {
 
         where._id = {"$nin": array_of_ids_to_remove};
 
-        //console.log("where",where);
+        //console.log("where",JSON.stringify(where));
         const results = await User.find(where).limit(config.max_number_of_suggestion).lean();
         return results;
     }
@@ -117,6 +117,7 @@ exports.getSuggestionsForUser = async (user) => {
             json.new_suggestions = true;
         }
     }
+    console.log("found_suggestions",found_suggestions);
     json.suggestions.push(found_suggestions);
     return json;
 }
