@@ -18,6 +18,7 @@
   "USER_CANCEL_CURRENT_MATCH": "/cancelCurrentMatch",
   "USER_CLOSE_ACCOUNT": "/closeAccount",
   "USER_GET_MESSAGES": "/getMessages",
+  "USER_GET_MESSAGE_HISTORY": "/getMessageHistory",
   "USER_GET_IMAGE": "/getImage",
   "USER_UPDATE": "/update",
   "USER_UPDATE_NOTIFICATIONS": "/updateNotifications",

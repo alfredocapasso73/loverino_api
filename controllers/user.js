@@ -14,12 +14,48 @@ const mailer = require('../helpers/mailer');
 const user_handler = require('../helpers/user_handler');
 const image_handler = require('../helpers/image_handler');
 
+
+exports.getChatHistory = async (req, res) => {
+    try{
+        if(!req?.body?.last_created_at){
+            return res.status(500).send({message: "missing_last_created_at"});
+        }
+        const user = req.user;
+        const room = user.room;
+        if(!user || !room){
+            return res.status(500).send({message: "missing_room_and_user"});
+        }
+        const last_created_at = req.body.last_created_at;
+        const messages_unordered = await Chat.find({createdAt: {$lt: new Date(last_created_at)}}).sort({createdAt: -1}).limit(10);
+        if(!messages_unordered?.length){
+            return res.status(200).send({message: "me", messages: []});
+        }
+        const messages = messages_unordered;
+        const oldest_message = messages[0];
+        const more_messages = await Chat.count({createdAt: {$lt: new Date(oldest_message.createdAt)}});
+        return res.status(200).send({message: "me", messages: messages, more_messages: more_messages});
+    }
+    catch(exception){
+        console.log(exception);
+        return res.status(500).send({message: exception});
+    }
+};
+
 exports.getChatMessages = async (req, res) => {
     try{
         const user = req.user;
         const room = user.room;
-        const messages = await Chat.find({room_id: room});
-        return res.status(200).send({message: "me", messages: messages});
+        if(!user || !room){
+            return res.status(500).send({message: "missing_room_and_user"});
+        }
+        const messages_unordered = await Chat.find({room_id: room}).sort({createdAt: -1}).limit(10);
+        const messages = messages_unordered ? messages_unordered.reverse() : [];
+        let more_messages = 0;
+        if(messages?.length){
+            const oldest_message = messages[0];
+            more_messages = await Chat.count({createdAt: {$lt: new Date(oldest_message.createdAt)}});
+        }
+        return res.status(200).send({message: "me", messages: messages, more_messages: more_messages});
     }
     catch(exception){
         console.log(exception);

@@ -7,5 +7,7 @@
   "max_number_of_suggestion": 4,
   "description_max_number_of_chars": 500,
   "number_of_hours_between_suggestions": 6,
-  "number_of_hours_between_suggestions_for_paying_users": 3
+  "number_of_minutes_between_suggestions": 360,
+  "number_of_hours_between_suggestions_for_paying_users": 3,
+  "number_of_minutes_between_suggestions_for_paying_users": 2
 }

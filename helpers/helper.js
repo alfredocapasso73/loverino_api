@@ -107,6 +107,12 @@ exports.addHours = (date, hours) => {
     return copy;
 }
 
+exports.addMinutes = (date, minutes) => {
+    const copy = clone(date);
+    copy.setMinutes(copy.getMinutes() + minutes);
+    return copy;
+}
+
 exports.dateXHoursAgo = (hours) => {
     const date = new Date();
     return subtractHours(date, hours);

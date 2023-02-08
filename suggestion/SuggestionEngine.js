@@ -49,7 +49,7 @@ const generateSuggestions = async (user) => {
 
         where._id = {"$nin": array_of_ids_to_remove};
 
-        //console.log("where",JSON.stringify(where));
+        console.log("where",JSON.stringify(where));
         const results = await User.find(where).limit(config.max_number_of_suggestion).lean();
         return results;
     }
@@ -62,9 +62,19 @@ const getMinutesForNextSuggestions = (suggestions_completed_at, is_paying_user) 
     if(!suggestions_completed_at){
         return undefined;
     }
-    const number_of_hours = is_paying_user ? config.number_of_hours_between_suggestions_for_paying_users : config.number_of_hours_between_suggestions;
+    /*const number_of_hours = is_paying_user ? config.number_of_hours_between_suggestions_for_paying_users : config.number_of_hours_between_suggestions;
     const date_next_suggestion = helper.addHours(suggestions_completed_at, number_of_hours);
     const ms_difference =  new Date(date_next_suggestion) - new Date();
+    const minutes = Math.floor(ms_difference/1000/60);
+    if(minutes < 0){
+        return undefined;
+    }
+    return minutes;*/
+
+    const number_of_minutes = is_paying_user ? config.number_of_minutes_between_suggestions_for_paying_users : config.number_of_minutes_between_suggestions;
+    const date_next_suggestion = helper.addMinutes(suggestions_completed_at, number_of_minutes);
+    const ms_difference =  new Date(date_next_suggestion) - new Date();
+    console.log("ms_difference",ms_difference);
     const minutes = Math.floor(ms_difference/1000/60);
     if(minutes < 0){
         return undefined;
@@ -117,7 +127,6 @@ exports.getSuggestionsForUser = async (user) => {
             json.new_suggestions = true;
         }
     }
-    console.log("found_suggestions",found_suggestions);
     json.suggestions.push(found_suggestions);
     return json;
 }
