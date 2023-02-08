@@ -19,8 +19,13 @@ exports.formatDescription = (description) => {
 
 exports.deleteTestImage = async (filename) => {
     for await(name of config.picture_name_format){
-        const full_filename = `${process.env.IMAGE_UPLOAD_PATH}/${name}-${filename}`;
-        fs.unlinkSync(full_filename);
+        try{
+            const full_filename = `${process.env.IMAGE_UPLOAD_PATH}/${name}-${filename}`;
+            fs.unlinkSync(full_filename);
+        }
+        catch(exception){
+            console.log("exception",exception);
+        }
     }
 };
 

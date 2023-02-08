@@ -1,19 +1,17 @@
+const mongoose = require('mongoose');
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const fs = require('fs');
+const {v4: uuidv4} = require("uuid");
 const User = require("../models/user");
 const City = require("../models/city");
 const Region = require("../models/region");
-const RefusedUser = require('../models/refused_user');
 const CanceledMatch = require('../models/canceled_match');
 const Chat = require('../models/chat');
-const WinnerUser = require('../models/winner_user');
 const validation = require('../helpers/validation');
 const helper = require('../helpers/helper');
-const user_handler = require('../helpers/user_handler');
 const mailer = require('../helpers/mailer');
-const mongoose = require('mongoose');
-const fs = require('fs');
-const {v4: uuidv4} = require("uuid");
+const user_handler = require('../helpers/user_handler');
 const image_handler = require('../helpers/image_handler');
 
 exports.getChatMessages = async (req, res) => {
@@ -158,6 +156,7 @@ exports.signup = async (req, res) => {
         const createdUser = await user.save();
         await mailer.welcomeEmail(createdUser);
         const returnUser = (({ _id,name, activation_string }) => ({ _id,name, activation_string }))(createdUser);
+        await mailer.adminNewSignup(user);
 
         res.status(200).send({message: "signup_ok", returnUser: returnUser});
     }
@@ -288,20 +287,7 @@ exports.closeAccount = async (req, res) => {
         if(!user){
             return res.status(500).send({error: 'user_not_found'});
         }
-
-        if(user.current_match){
-            const current_match = user.current_match;
-            const user_current_match = await User.findOne({_id: current_match});
-            await handleMatchCanceled(req.user._id, user_current_match._id);
-        }
-        if(user.pictures.length){
-            const pictures = user.pictures;
-            for await (const pic of pictures){
-                await helper.deleteImages(pic);
-            }
-        }
-        await User.deleteOne({_id: req.user._id});
-        await user_handler.manageUserClosingAccount(req.user._id);
+        await user_handler.manageUserClosingAccount(user);
         return res.status(200).send({message: "ok"});
     }
     catch(exception){
@@ -309,113 +295,6 @@ exports.closeAccount = async (req, res) => {
         return res.status(500).send({message: exception});
     }
 };
-
-exports.testRematch = async (req, res) => {
-    const deleted = await User.deleteMany({$or: [{name: "Rematch1"},{name: "Rematch2"},{name: "Rematch3"},{name: "Rematch4"}]});
-    const user1_val = new User({name: "Rematch1", email: "Rematch1@loverino.se", password: "password", active: true, current_step: "done", status: "complete", activation_string: "abcd"});
-    const user1_ob = await user1_val.save();
-    const user2_val = new User({name: "Rematch2", email: "Rematch2@loverino.se", password: "password", active: true, current_step: "done", status: "complete", activation_string: "abcd"});
-    const user2_ob = await user2_val.save();
-    const user3_val = new User({name: "Rematch3", email: "Rematch3@loverino.se", password: "password", active: true, current_step: "done", status: "complete", activation_string: "abcd"});
-    const user3_ob = await user3_val.save();
-    const user4_val = new User({name: "Rematch4", email: "Rematch4@loverino.se", password: "password", active: true, current_step: "done", status: "complete", activation_string: "abcd"});
-    const user4_ob = await user4_val.save();
-    const winner_1_val = new WinnerUser({for_user_id: user1_ob._id,winner_id: user2_ob._id, is_test: true});
-    const winner_1_ob = await winner_1_val.save();
-    const winner_2_val = new WinnerUser({winner_id: user1_ob._id,for_user_id: user2_ob._id, is_test: true});
-    const winner_2_ob = await winner_2_val.save();
-    const winner_3_val = new WinnerUser({for_user_id: user1_ob._id,winner_id: user3_ob._id, is_test: true});
-    const winner_3_ob = await winner_3_val.save();
-    const winner_4_val = new WinnerUser({winner_id: user1_ob._id,for_user_id: user3_ob._id, is_test: true});
-    const winner_4_ob = await winner_4_val.save();
-
-    await User.updateOne({_id: user1_ob._id}, {$set: {current_match: user2_ob._id}});
-    await User.updateOne({_id: user2_ob._id}, {$set: {current_match: user1_ob._id}});
-
-
-    await handleMatchCanceled(user1_ob._id, user2_ob._id);
-
-
-    const all_winners = await WinnerUser.find({});
-    const rematch_for_users = await checkIfCanceledUsersHaveMatch(user1_ob._id, user2_ob._id);
-
-    const user1_refetched = await User.findOne({_id: user1_ob._id});
-    const user2_refetched = await User.findOne({_id: user2_ob._id});
-    const user3_refetched = await User.findOne({_id: user3_ob._id});
-
-    await WinnerUser.deleteMany({is_test: true});
-    return res.status(200).send(
-        {
-            message: "testRematch"
-            , all_winners: all_winners
-            , user1_ob: user1_ob
-            , user1_refetched: user1_refetched
-            , user2_ob: user2_ob
-            , user2_refetched: user2_refetched
-            , user3_ob: user3_ob
-            , user3_refetched: user3_refetched
-            , user4_ob: user4_ob
-            , rematch_for_users: rematch_for_users
-        });
-}
-
-
-const getRematchedForUser = async (user_id) => {
-    const winners_for_user = await WinnerUser.find({for_user_id: user_id}) || [];
-    if(!winners_for_user.length){
-        return null;
-    }
-    const winners_for_user_arr = winners_for_user.map(el => mongoose.Types.ObjectId(el.winner_id).valueOf());
-    const set_user_as_winner = await WinnerUser.find({
-        $and: [{for_user_id: {$in: winners_for_user_arr}},{winner_id: user_id}]
-    }) || [];
-    if(!set_user_as_winner.length){
-        return null;
-    }
-    const potential_matches_ids = set_user_as_winner.map(el => el.for_user_id);
-    const found_matches = await User.find({
-        _id: {$in: potential_matches_ids}
-    });
-    return found_matches.length ? found_matches[0] : null;
-}
-
-const checkIfCanceledUsersHaveMatch = async (user_leaving_id, user_left_id) => {
-    const data = {rematch_user_1: null,rematch_user_2: null};
-
-    const match_for_user_leaving = await getRematchedForUser(user_leaving_id);
-    //There is a new match already for user_leaving_id
-    if(match_for_user_leaving){
-        const room = uuidv4();
-        await User.updateOne({_id: user_leaving_id}, {$set: {current_match: match_for_user_leaving._id, room: room}});
-        await User.updateOne({_id: match_for_user_leaving._id}, {$set: {current_match: user_leaving_id, room: room}});
-        data.rematch_user_1 = match_for_user_leaving._id;
-    }
-
-    const match_for_user_left = await getRematchedForUser(user_left_id);
-    //There is a new match already for user_left_id
-    if(match_for_user_left){
-        const room = uuidv4();
-        await User.updateOne({_id: user_left_id}, {$set: {current_match: match_for_user_left._id, room: room}});
-        await User.updateOne({_id: match_for_user_left._id}, {$set: {current_match: user_left_id, room: room}});
-        data.rematch_user_2 = match_for_user_left._id;
-    }
-    return data;
-}
-
-const handleMatchCanceled = async (user_leaving_id, user_left_id) => {
-    const update_fields = {
-        suggestions_completed_at: helper.date1DayAgo()
-        ,current_match: null
-        ,room: null
-    };
-    await User.updateOne({_id: user_leaving_id}, update_fields);
-    await User.updateOne({_id: user_left_id}, update_fields);
-    await RefusedUser.updateOne({for_user_id: user_leaving_id}, {$push: {users: user_left_id}}, {upsert: true});
-    await WinnerUser.deleteMany({for_user_id: user_leaving_id, winner_id: user_left_id});
-    await WinnerUser.deleteMany({for_user_id: user_left_id, winner_id: user_leaving_id});
-    const canceled_match = new CanceledMatch({for_user_id: user_left_id, canceling_id: user_leaving_id});
-    await canceled_match.save();
-}
 
 exports.cancelCurrentMatch = async (req, res) => {
     try{
@@ -434,17 +313,8 @@ exports.cancelCurrentMatch = async (req, res) => {
         ){
             return res.status(500).send({error: 'match_ids_are_not_equal'});
         }
-        await handleMatchCanceled(req.user._id, current_match);
-        const rematches = await checkIfCanceledUsersHaveMatch(req.user._id, current_match);
-        /*const update_fields = {
-            suggestions_completed_at: helper.date1DayAgo()
-            ,current_match: null
-        };
-        await User.updateOne({_id: req.user._id}, update_fields);
-        await User.updateOne({_id: current_match}, update_fields);
-        await RefusedUser.updateOne({for_user_id: req.user._id}, {$push: {users: current_match}}, {upsert: true});
-        const canceled_match = new CanceledMatch({for_user_id: current_match, canceling_id: req.user._id});
-        await canceled_match.save();*/
+        await user_handler.handleMatchCanceled(req.user._id, current_match);
+        const rematches = await user_handler.checkIfCanceledUsersHaveMatch(req.user._id, current_match);
 
         return res.status(200).send({message: "ok", rematches: rematches});
     }
@@ -592,140 +462,9 @@ exports.updatePassword = async (req, res) => {
     }
 };
 
-const validateStep2 = async (req, validate_name = false) => {
-    const errors = [];
-    const set = {};
-
-    try{
-        if(validation.emptyParameter(req, 'gender')){
-            errors.push('missing_parameter_gender');
-        }
-        const gender = req.body.gender;
-        const validGenders = validation.validGender();
-        if(!validGenders.includes(gender)){
-            errors.push('invalid_gender');
-        }
-        set.gender = gender;
-
-        if(validation.emptyParameter(req, 'search_gender')){
-            errors.push('missing_parameter_search_gender');
-        }
-        const search_gender = req.body.search_gender;
-        const validSearchGenders = validation.validSearchGender();
-        if(!validSearchGenders.includes(search_gender)){
-            errors.push('invalid_search_gender');
-        }
-        set.search_gender = search_gender;
-
-        if(validation.emptyParameter(req, 'birthday')){
-            errors.push('missing_parameter_birthday');
-        }
-        const birthday = req.body.birthday;
-        if(!validation.isValidDate(birthday)){
-            errors.push('invalid_birthday');
-        }
-        set.birthday = birthday;
-
-        if(validation.emptyParameter(req, 'search_min_age')){
-            errors.push('missing_parameter_search_min_age');
-        }
-        const search_min_age = req.body.search_min_age;
-        if(!validation.isValidInteger(search_min_age)){
-            errors.push('invalid_search_min_age');
-        }
-        set.search_min_age = search_min_age;
-
-        if(validation.emptyParameter(req, 'search_max_age')){
-            errors.push('missing_parameter_search_max_age');
-        }
-        const search_max_age = req.body.search_max_age;
-        if(!validation.isValidInteger(search_max_age)){
-            errors.push('invalid_search_max_age');
-        }
-        if(search_max_age < search_min_age){
-            errors.push('invalid_range_for_search_age');
-        }
-        set.search_max_age = search_max_age;
-
-        if(validation.emptyParameter(req, 'region')){
-            errors.push('missing_parameter_region');
-        }
-        const region = req.body.region;
-        const validRegionId = mongoose.isObjectIdOrHexString(region);
-        if(!validRegionId){
-            errors.push('invalid_region_parameter');
-        }
-        const foundRegion = await Region.find({_id: region});
-        if(!foundRegion.length){
-            errors.push('region_not_found');
-        }
-        set.region = region;
-
-        if(validation.emptyParameter(req, 'city')){
-            errors.push('missing_parameter_city');
-        }
-        const city = req.body.city;
-        const validCityId = mongoose.isObjectIdOrHexString(city);
-        if(!validCityId){
-            errors.push('invalid_city_parameter');
-        }
-        const foundCity = await City.find({_id: city});
-        if(!foundCity.length){
-            errors.push('city_not_found');
-        }
-        set.city = city;
-
-        if(validation.emptyParameter(req, 'search_distance')){
-            errors.push('missing_parameter_search_distance');
-        }
-        const search_distance = req.body.search_distance;
-        const valid_search_distance = validation.validSearchDistance();
-        if(!valid_search_distance.includes(search_distance)){
-            errors.push('invalid_search_distance');
-        }
-        set.search_distance = search_distance;
-
-        if(!req.body.height){
-            errors.push('missing_parameter_height');
-        }
-        const height = req.body.height;
-        const valid_height = validation.isValidInteger(height);
-        if(!valid_height){
-            errors.push('invalid_height');
-        }
-        set.height = height;
-
-        if(validation.emptyParameter(req, 'body_type')){
-            errors.push('missing_parameter_body_type');
-        }
-        const body_type = req.body.body_type;
-        const valid_body_types = validation.validSearchBodyType();
-
-        if(!valid_body_types.includes(body_type)){
-            errors.push('invalid_body_type');
-        }
-        set.body_type = body_type;
-
-        if(validate_name){
-            if(validation.emptyParameter(req, 'name')){
-                errors.push('missing_parameter_name');
-            }
-            const name = req.body.name;
-            set.name = name;
-        }
-
-        return {errors: errors, set: set};
-    }
-    catch(exception){
-        //console.log(exception);
-        errors.push(exception);
-        return {errors: errors, set: set};
-    }
-}
-
 exports.updateMyProfile = async (req, res) => {
     try{
-        const validation = await validateStep2(req, true);
+        const validation = await user_handler.validateStep2(req, true);
         if(validation.errors.length){
             return res.status(400).send({errors: validation.errors});
         }
@@ -744,7 +483,7 @@ exports.updateMyProfile = async (req, res) => {
 
 exports.runStep2 = async (req, res) => {
     try{
-        const validation = await validateStep2(req, false);
+        const validation = await user_handler.validateStep2(req, false);
         if(validation.errors.length){
             return res.status(400).send({errors: validation.errors});
         }

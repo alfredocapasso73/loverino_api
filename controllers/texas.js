@@ -2,8 +2,8 @@ const jwt = require("jsonwebtoken");
 const User = require('../models/user');
 const Region = require('../models/region');
 const City = require('../models/city');
-const helper = require('../helpers/helper');
 const image_handler = require('../helpers/image_handler');
+const user_handler = require('../helpers/user_handler');
 
 exports.authTest = async (req, res) => {
     try{
@@ -126,6 +126,22 @@ exports.searchUser = async (req, res) => {
             return res.status(200).send({message: "ok", user: user_by_id});
         }
         return res.status(500).send({message: "user_not_found"});
+    }
+    catch(exception){
+        console.log(exception);
+        return res.status(500).send({message: exception});
+    }
+};
+
+exports.deleteUser = async (req, res) => {
+    try{
+        const user_id = req.body.user_id;
+        const user = await User.findOne({_id: user_id});
+        if(!user){
+            return res.status(500).send({error: 'user_not_found'});
+        }
+        await user_handler.manageUserClosingAccount(user);
+        return res.status(200).send({message: "user_removed"});
     }
     catch(exception){
         console.log(exception);

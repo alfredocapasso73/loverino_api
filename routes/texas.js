@@ -6,6 +6,7 @@ const texasController = require("../controllers/texas");
 router.get(`/texas/authTest`, authJWT.verifyAdminToken, texasController.authTest);
 router.get(`/texas/nonAuthTest`, texasController.nonAuthTest);
 router.post(`/texas/signin`, texasController.signin);
+router.delete(`/texas/deleteUser`, authJWT.verifyAdminToken, texasController.deleteUser);
 router.post(`/texas/getUsers`, authJWT.verifyAdminToken, texasController.getUsers);
 router.get(`/texas/user/:id`, authJWT.verifyAdminToken, texasController.getUser);
 router.post(`/texas/user`, authJWT.verifyAdminToken, texasController.saveUser);

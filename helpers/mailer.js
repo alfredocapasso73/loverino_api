@@ -30,6 +30,35 @@ const setMailHeaderAndFooter = () => {
     handlebars.registerPartial('footer', footer);
 }
 
+exports.adminNewSignup = async (user) => {
+    setMailHeaderAndFooter();
+    const filename = path.join(__dirname, `/../templates/admin-new-user.handlebars`);
+    const emailTemplate = fs.readFileSync(filename, "utf-8");
+    const template = handlebars.compile(emailTemplate)
+    const html = (template({
+        name: user.name
+    }));
+    const to = process.env.ADMIN_MAIL_ON_NOTIFICATION;
+    const subject = "New signup at loverino";
+    await sendMail(html, subject, to);
+};
+
+
+exports.newMatchEmail = async (user) => {
+    setMailHeaderAndFooter();
+    const lang_config = require(`../languages/${user.language}.json`);
+    const filename = path.join(__dirname, `/../templates/new-match-${user.language}.handlebars`);
+    const emailTemplate = fs.readFileSync(filename, "utf-8");
+    const template = handlebars.compile(emailTemplate)
+    const html = (template({
+        name: user.name,
+        loginUrl: `${process.env.APP_URL}`
+    }));
+    const to = user.email;
+    const subject = lang_config['NEW_MATCH_MAIL_SUBJECT'];
+    await sendMail(html, subject, to);
+};
+
 exports.welcomeEmail = async (user) => {
     setMailHeaderAndFooter();
     const lang_config = require(`../languages/${user.language}.json`);

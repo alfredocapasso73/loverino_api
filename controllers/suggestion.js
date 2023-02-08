@@ -13,6 +13,7 @@ const ArchivedSuggestion = require('../models/archived_suggestion');
 const City = require("../models/city");
 const { v4: uuidv4 } = require('uuid');
 const suggestion_handler = require('../helpers/suggestion_handler');
+const user_handler = require('../helpers/user_handler');
 
 exports.getCompetition = async (req, res) => {
     try{
@@ -64,14 +65,19 @@ exports.getSuggestions = async (req, res) => {
         if(suggestions?.users?.length){
             const users = suggestions.users;
             for await(const tmp_user of users){
-                const found = await getUserPublicFields(tmp_user.user_id);
-                if(found){
-                    const city_name = await City.findOne({_id: found.city});
-                    if(city_name){
-                        found.city_name = city_name.name;
+                try{
+                    const found = await getUserPublicFields(tmp_user.user_id);
+                    if(found){
+                        const city_name = await City.findOne({_id: found.city});
+                        if(city_name){
+                            found.city_name = city_name.name;
+                        }
+                        tmp_user.data = found;
+                        return_users.push(tmp_user);
                     }
-                    tmp_user.data = found;
-                    return_users.push(tmp_user);
+                }
+                catch(sugegstion_exception){
+                    console.log("sugegstion_exception",sugegstion_exception);
                 }
             }
             suggestions.users = return_users;
@@ -228,9 +234,7 @@ const checkIfMatch = async (req) => {
             return undefined;
         }
         const found_match = found_matches[0];
-        const room = uuidv4();
-        await User.updateOne({_id: user_id}, {$set: {current_match: found_match._id, room: room}});
-        await User.updateOne({_id: found_match._id}, {$set: {current_match: user_id, room: room}});
+        await user_handler.exposeMatchTwoUsersIfApplicable(user_id, found_match._id);
 
         return found_match._id;
     }

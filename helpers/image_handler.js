@@ -85,9 +85,9 @@ exports.uploadPicture = async (req, res) => {
         }
 
         try {
-            console.error("are we here?");
             const pictures = await storeUserImage(req, user_id);
-            return res.json({message: "ok", pictures: pictures});
+            const filename = req.file.filename.replace('picture-', '');
+            return res.json({message: "ok", pictures: pictures, filename: filename});
         }
         catch (error) {
             console.error(error);
