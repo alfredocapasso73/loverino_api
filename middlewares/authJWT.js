@@ -20,7 +20,6 @@ exports.verifyToken = (req, res, next) => {
         });
     }
     else{
-        console.log("err at else in verifyToken:");
         res.status(401).send({message: 'unauthorized'});
     }
 }

@@ -62,20 +62,15 @@ const getMinutesForNextSuggestions = (suggestions_completed_at, is_paying_user) 
     if(!suggestions_completed_at){
         return undefined;
     }
-    /*const number_of_hours = is_paying_user ? config.number_of_hours_between_suggestions_for_paying_users : config.number_of_hours_between_suggestions;
-    const date_next_suggestion = helper.addHours(suggestions_completed_at, number_of_hours);
-    const ms_difference =  new Date(date_next_suggestion) - new Date();
-    const minutes = Math.floor(ms_difference/1000/60);
-    if(minutes < 0){
-        return undefined;
-    }
-    return minutes;*/
 
     const number_of_minutes = is_paying_user ? config.number_of_minutes_between_suggestions_for_paying_users : config.number_of_minutes_between_suggestions;
     const date_next_suggestion = helper.addMinutes(suggestions_completed_at, number_of_minutes);
     const ms_difference =  new Date(date_next_suggestion) - new Date();
-    console.log("ms_difference",ms_difference);
+    const seconds = Math.floor(ms_difference/1000);
     const minutes = Math.floor(ms_difference/1000/60);
+    console.log("ms_difference",ms_difference);
+    console.log("seconds",seconds);
+    console.log("minutes",minutes);
     if(minutes < 0){
         return undefined;
     }

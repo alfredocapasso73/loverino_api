@@ -9,4 +9,5 @@ process.env.APP_URL = 'http://localhost:8080'
 process.env.IMAGE_UPLOAD_PATH = "/Users/alfredocapasso/loverino/loverino_api/upload"
 process.env.TEST_IMAGE_LIGHT_PATH = "/Users/alfredocapasso/loverino/loverino_api/tests-data/light-image.jpeg"
 process.env.SENDGRID_API_KEY = "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"
+process.env.ADMIN_MAIL_ON_NOTIFICATION = "alfredo@loverino.se"
 
