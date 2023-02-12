@@ -373,3 +373,44 @@ exports.validateStep2 = async (req, validate_name = false) => {
         return {errors: errors, set: set};
     }
 }
+
+exports.getUsersList = async (arr_users, users_per_page, current_page) => {
+    arr_users.reverse();
+    const nr_of_pages = Math.ceil(arr_users.length/users_per_page);
+    const users_list = [];
+    const start = (current_page-1)*users_per_page;
+    const end = current_page*users_per_page;
+    const sliced_array = arr_users.slice(start, end);
+    for await (const user_id of sliced_array){
+        try{
+            const found = await getPublicUserFields(user_id);
+            if(found){
+                users_list.push(found);
+            }
+        }
+        catch(exception){
+            console.log("exception",exception);
+        }
+    }
+    return {users_list: users_list, nr_of_pages: nr_of_pages}
+}
+
+exports.getUserPublicFields = async (id) => {
+    return getPublicUserFields(id);
+}
+
+const getPublicUserFields = async (id) => {
+    try{
+        const user = await User.findOne({_id: id}).lean();
+        if(!user){
+            return null;
+        }
+        delete user.password;
+        delete user.activation_string;
+        delete user.is_paying_user;
+        return user;
+    }
+    catch(exception){
+        console.log(exception);
+    }
+}

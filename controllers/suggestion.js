@@ -66,7 +66,7 @@ exports.getSuggestions = async (req, res) => {
             const users = suggestions.users;
             for await(const tmp_user of users){
                 try{
-                    const found = await getUserPublicFields(tmp_user.user_id);
+                    const found = await user_handler.getUserPublicFields(tmp_user.user_id);
                     if(found){
                         const city_name = await City.findOne({_id: found.city});
                         if(city_name){
@@ -169,7 +169,7 @@ exports.voteSuggestion = async (req, res) => {
                 await setCompetitionCompleted(for_user_id);
                 if(found_competition && found_competition.users.length === 1){
                     await setWinner(for_user_id, found_competition.users[0].user_id);
-                    winner = await getUserPublicFields(found_competition.users[0].user_id);
+                    winner = await user_handler.getUserPublicFields(found_competition.users[0].user_id);
                     await Competition.updateOne({_id: found_competition._id}, {status: 'ended', "$set": {"users[0].status": "won"}});
                     await setCompetitionArchived(found_competition._id);
                     you_got_a_match = await checkIfMatch(req);
@@ -186,23 +186,6 @@ exports.voteSuggestion = async (req, res) => {
         return res.status(500).send({error: exception});
     }
 };
-
-const getUserPublicFields = async (id) => {
-    try{
-        const user = await User.findOne({_id: id}).lean();
-        if(!user){
-            return null;
-        }
-        delete user.password;
-        delete user.activation_string;
-        delete user.is_paying_user;
-        return user;
-    }
-    catch(exception){
-        console.log(exception);
-    }
-
-}
 
 const checkIfMatch = async (req) => {
     try{

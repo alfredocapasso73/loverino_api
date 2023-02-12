@@ -8,15 +8,104 @@ const City = require("../models/city");
 const Region = require("../models/region");
 const CanceledMatch = require('../models/canceled_match');
 const Chat = require('../models/chat');
+const RefusedUser = require('../models/refused_user');
+const LikedUser = require('../models/liked_user');
+const PerhapsUser = require('../models/perhaps_user');
 const validation = require('../helpers/validation');
 const helper = require('../helpers/helper');
 const mailer = require('../helpers/mailer');
 const user_handler = require('../helpers/user_handler');
 const image_handler = require('../helpers/image_handler');
+const config = require('../config/config.json');
 
-exports.mailTest = async (req, res) => {
-    await mailer.mailTest();
-    res.status(200).json({message: "mailTest"});
+const getListOfUsers = async (req, res, caller) => {
+    try{
+        const users_per_page = req?.body?.users_per_page || config.list_users_default_per_page;
+        const current_page = req.body.current_page || config.list_users_default_page_number;
+        const user = req.user;
+        let user_list = [];
+        let users_found = false;
+        let nr_of_pages = 0;
+        let array_with_users = [];
+        if(caller === 'refused'){
+            const refused = await RefusedUser.findOne({for_user_id: user._id});
+            if(refused && refused?.users?.length){
+                array_with_users = [...new Set(refused.users)];
+            }
+        }
+        else{
+            const liked = await LikedUser.findOne({for_user_id: user._id});
+            const perhaps = await PerhapsUser.findOne({for_user_id: user._id});
+            if((liked || perhaps) && (liked?.users?.length || perhaps?.users?.length)){
+                const liked_user_array = liked?.users?.length ? liked.users : [];
+                const perhaps_user_array = perhaps?.users?.length ? perhaps.users : [];
+                const both_arrays = liked_user_array.concat(perhaps_user_array);
+                array_with_users = [...new Set(both_arrays)];
+            }
+        }
+        if(array_with_users?.length){
+            const func_result = await user_handler.getUsersList(array_with_users, users_per_page, current_page);
+            user_list = func_result.users_list;
+            nr_of_pages = func_result.nr_of_pages;
+            users_found = true;
+        }
+        return res.status(200).send({message: "ok", user_list: user_list, users_found: users_found, nr_of_pages: nr_of_pages});
+    }
+    catch(exception){
+        console.log(exception);
+        return res.status(500).send({message: exception});
+    }
+}
+
+exports.getRefusedUsers = async (req, res) => {
+    return getListOfUsers(req, res, 'refused');
+    /*try{
+        const users_per_page = req?.body?.users_per_page || config.list_users_default_per_page;
+        const current_page = req.body.current_page || config.list_users_default_page_number;
+        const user = req.user;
+        let refused_list = [];
+        let users_found = false;
+        let nr_of_pages = 0;
+        const refused = await RefusedUser.findOne({for_user_id: user._id});
+        if(refused && refused?.users?.length){
+            const refused_users = [...new Set(refused.users)];
+            const refused_result = await user_handler.getUsersList(refused_users, users_per_page, current_page);
+            refused_list = refused_result.users_list;
+            nr_of_pages = refused_result.nr_of_pages;
+            users_found = true;
+        }
+        return res.status(200).send({message: "ok", refused_list: refused_list, users_found: users_found, nr_of_pages: nr_of_pages});
+    }
+    catch(exception){
+        console.log(exception);
+        return res.status(500).send({message: exception});
+    }*/
+};
+
+exports.getFavoriteUsers = async (req, res) => {
+    return getListOfUsers(req, res, 'favorites');
+    /*try{
+        const users_per_page = req?.body?.users_per_page || config.list_users_default_per_page;
+        const current_page = req.body.current_page || config.list_users_default_page_number;
+        const user = req.user;
+        let favorite_list = [];
+        let users_found = false;
+        let nr_of_pages = 0;
+        const liked = await LikedUser.findOne({for_user_id: user._id});
+        const perhaps = await PerhapsUser.findOne({for_user_id: user._id});
+        if((liked || perhaps) && (liked?.users?.length || perhaps?.users?.length)){
+            const liked_user_array = liked?.users?.length ? liked.users : [];
+            const perhaps_user_array = perhaps?.users?.length ? perhaps.users : [];
+            const both_arrays = liked_user_array.concat(perhaps_user_array);
+            const favorite_users = [...new Set(both_arrays)];
+            favorite_list = await user_handler.getUsersList(favorite_users, users_per_page, current_page);
+        }
+        return res.status(200).send({message: "ok", favorite_list: favorite_list, users_found: users_found});
+    }
+    catch(exception){
+        console.log(exception);
+        return res.status(500).send({message: exception});
+    }*/
 };
 
 exports.getChatHistory = async (req, res) => {
