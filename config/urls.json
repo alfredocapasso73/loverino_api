@@ -21,6 +21,8 @@
   "USER_GET_MESSAGE_HISTORY": "/getMessageHistory",
   "USER_GET_REFUSED_USERS": "/getRefusedUsers",
   "USER_GET_FAVORITE_USERS": "/getFavoriteUsers",
+  "USER_RESTORE_REFUSED_USER": "/restoreRefusedUser",
+  "USER_RESTORE_FAVORITE_USER": "/restoreFavoriteUser",
   "USER_GET_IMAGE": "/getImage",
   "USER_UPDATE": "/update",
   "USER_UPDATE_NOTIFICATIONS": "/updateNotifications",

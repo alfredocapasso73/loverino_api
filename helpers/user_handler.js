@@ -405,6 +405,14 @@ const getPublicUserFields = async (id) => {
         if(!user){
             return null;
         }
+        const region_name = await Region.findOne({_id: user.region});
+        if(region_name){
+            user.region_name = region_name.name;
+        }
+        const city_name = await City.findOne({_id: user.city});
+        if(city_name){
+            user.city_name = city_name.name;
+        }
         delete user.password;
         delete user.activation_string;
         delete user.is_paying_user;
