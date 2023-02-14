@@ -15,6 +15,7 @@ router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_RESTORE_REFUSED_US
 router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_RESTORE_FAVORITE_USER}`, authJWT.verifyToken, userController.restoreFavoriteUser);
 router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_GET_FAVORITE_USERS}`, authJWT.verifyToken, userController.getFavoriteUsers);
 router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_GET_REFUSED_USERS}`, authJWT.verifyToken, userController.getRefusedUsers);
+router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_UNREAD_MESSAGES}`, authJWT.verifyToken, userController.unreadChatMessages);
 router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_READ_MESSAGES}`, authJWT.verifyToken, userController.readChatMessages);
 router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_GET_MESSAGE_HISTORY}`, authJWT.verifyToken, userController.getChatHistory);
 router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_GET_MESSAGES}`, authJWT.verifyToken, userController.getChatMessages);

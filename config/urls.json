@@ -20,6 +20,7 @@
   "USER_GET_MESSAGES": "/getMessages",
   "USER_GET_MESSAGE_HISTORY": "/getMessageHistory",
   "USER_READ_MESSAGES": "/readMessages",
+  "USER_UNREAD_MESSAGES": "/unreadMessages",
   "USER_GET_REFUSED_USERS": "/getRefusedUsers",
   "USER_GET_FAVORITE_USERS": "/getFavoriteUsers",
   "USER_RESTORE_REFUSED_USER": "/restoreRefusedUser",

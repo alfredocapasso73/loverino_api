@@ -129,6 +129,22 @@ exports.getChatHistory = async (req, res) => {
     }
 };
 
+exports.unreadChatMessages = async (req, res) => {
+    try{
+        const user = req.user;
+        const room = user.room;
+        if(!user || !room){
+            return res.status(500).send({message: "missing_room_and_user"});
+        }
+        const unread_messages = await Chat.count({room_id: room, read_at: null, to: user._id});
+        return res.status(200).send({message: "ok", unread_messages: unread_messages});
+    }
+    catch(exception){
+        console.log(exception);
+        return res.status(500).send({message: exception});
+    }
+};
+
 exports.readChatMessages = async (req, res) => {
     try{
         const user = req.user;
