@@ -14,6 +14,10 @@ const ChatSchema = new Schema({
     message: {
         type: String,
     },
+    read_at: {
+        type: Date
+        ,default: null
+    },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Chat', ChatSchema);

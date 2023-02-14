@@ -129,6 +129,22 @@ exports.getChatHistory = async (req, res) => {
     }
 };
 
+exports.readChatMessages = async (req, res) => {
+    try{
+        const user = req.user;
+        const room = user.room;
+        if(!user || !room){
+            return res.status(500).send({message: "missing_room_and_user"});
+        }
+        await Chat.updateOne({room_id: room, read_at: null}, {$set: {read_at: new Date()}});
+        return res.status(200).send({message: "ok"});
+    }
+    catch(exception){
+        console.log(exception);
+        return res.status(500).send({message: exception});
+    }
+};
+
 exports.getChatMessages = async (req, res) => {
     try{
         const user = req.user;
