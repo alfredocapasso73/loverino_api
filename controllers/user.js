@@ -152,7 +152,7 @@ exports.readChatMessages = async (req, res) => {
         if(!user || !room){
             return res.status(500).send({message: "missing_room_and_user"});
         }
-        await Chat.updateOne({room_id: room, read_at: null}, {$set: {read_at: new Date()}});
+        await Chat.update({room_id: room, read_at: null}, {$set: {read_at: new Date()}});
         return res.status(200).send({message: "ok"});
     }
     catch(exception){

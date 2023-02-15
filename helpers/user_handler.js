@@ -126,8 +126,25 @@ const matchCanceled = async (user_leaving_id, user_left_id) => {
         await User.updateOne({_id: user_leaving_id}, update_fields);
         await User.updateOne({_id: user_left_id}, update_fields);
         await RefusedUser.updateOne({for_user_id: user_leaving_id}, {$push: {users: user_left_id}}, {upsert: true});
+        const user_leaving_id_string = user_leaving_id.toString();
+        const user_left_id_string = user_left_id.toString();
+
+        await PerhapsUser.updateOne({ for_user_id: user_leaving_id }, {
+            $pull: {users: user_left_id_string},
+        });
+        await PerhapsUser.updateOne({ for_user_id: user_left_id }, {
+            $pull: {users: user_leaving_id_string},
+        });
+        await LikedUser.updateOne({ for_user_id: user_leaving_id }, {
+            $pull: {users: user_left_id_string},
+        });
+        await LikedUser.updateOne({ for_user_id: user_left_id }, {
+            $pull: {users: user_leaving_id_string},
+        });
+
         await WinnerUser.deleteMany({for_user_id: user_leaving_id, winner_id: user_left_id});
         await WinnerUser.deleteMany({for_user_id: user_left_id, winner_id: user_leaving_id});
+
         const canceled_match = new CanceledMatch({for_user_id: user_left_id, canceling_id: user_leaving_id});
         await canceled_match.save();
     }
@@ -138,7 +155,7 @@ const matchCanceled = async (user_leaving_id, user_left_id) => {
 
 exports.handleMatchCanceled = async (user_leaving_id, user_left_id) => {
     try{
-        await matchCanceled();
+        await matchCanceled(user_leaving_id, user_left_id);
     }
     catch(exception){
         throw exception;

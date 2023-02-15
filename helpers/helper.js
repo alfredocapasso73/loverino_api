@@ -87,7 +87,8 @@ exports.ageFromBirthday = (birthday) => {
     const birthday_timestamp = new Date(birthday.getFullYear(), birthday.getMonth(), birthday.getDate());
     const current_date = new Date().getTime();
     const difference = current_date - birthday_timestamp;
-    return Math.floor(difference / 31557600000);
+    const result = Math.floor(difference / 31557600000);
+    return result === 17 ? 18 : result;
 }
 
 exports.birthdayFromAge = (age) => {

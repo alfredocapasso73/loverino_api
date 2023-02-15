@@ -13,7 +13,6 @@ const generateSuggestions = async (user) => {
         const max_age_as_birthday = helper.birthdayFromAge(user.search_max_age);
         const user_age = helper.ageFromBirthday(user.birthday);
 
-
         const where = {};
         if(user.search_gender !== 'a'){
             where.gender = user.search_gender;
@@ -104,6 +103,7 @@ exports.getSuggestionsForUser = async (user) => {
         json.next_suggestion_possible_within_minutes = next_suggestion_possible_within_minutes;
         return json;
     }
+
 
     if(!found_suggestions){
         let suggestions = await generateSuggestions(user);

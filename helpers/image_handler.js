@@ -99,11 +99,13 @@ exports.uploadPicture = async (req, res) => {
 exports.getImage = async (req, res) => {
     try{
         const image = req.params.image;
-        const image_not_found = 'image_not_found.png';
+        //const image_not_found = 'image_not_found.png';
+        const image_not_found = 'no-photo.png';
+        //const no_photo = '/images/no-photo.png';
 
         let imgPath = `${process.env.IMAGE_UPLOAD_PATH}/${image}`;
         if(!fs.existsSync(imgPath)){
-            imgPath = `${process.env.IMAGE_UPLOAD_PATH}/${image_not_found}`;
+            imgPath = `${process.env.IMAGES_PATH}/${image_not_found}`;
         }
         const img_file = fs.readFileSync(imgPath);
         const img = Buffer.from(img_file, 'base64');
