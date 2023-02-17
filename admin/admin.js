@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const path = require("path");
 const fs = require('fs');
 const admin_helper = require('./admin_helper');
-
+const chokidar = require('chokidar');
 const ArchivedCompetitions = require("../models/archived_competition");
 const ArchivedSuggestion = require("../models/archived_suggestion");
 const CanceledMatch = require("../models/canceled_match");
@@ -100,6 +100,29 @@ const clear_db = async () => {
     }
 }
 
+const single_bot = async () => {
+    if(process.argv.length !== 7){
+        return console.log('usage: node admin.js bot [name,age_category, gender,search_gender]');
+    }
+    const name = process.argv[3];
+    const age_category = process.argv[4];
+    const gender = process.argv[5];
+    const search_gender = process.argv[6];
+    console.log('name:',name);
+    console.log('age_category:',age_category);
+    console.log('gender:',gender);
+    console.log('search_gender:',search_gender);
+    try{
+        await connectToDb();
+        await admin_helper.createSingleBot(name, age_category, gender, search_gender);
+        console.log("bot CREATED");
+        process.exit(1);
+    }
+    catch(ex){
+        throw new Error(`Something went wrong: ${ex}`);
+    }
+}
+
 const bots = async () => {
     try{
         await connectToDb();
@@ -132,6 +155,11 @@ const clear_collections = async () => {
     await WinnerUser.deleteMany({});
 }
 
+const test = async () => {
+    admin_helper.testNames();
+}
+
+
 /*
 node admin.js bots
 
@@ -140,9 +168,29 @@ node admin.js geo_install
 node admin.js geo_install_test
 
 node admin.js clear_db
+
+node admin.js test
+
+
+node admin.js bot alice 1830 f m
+node admin.js bot alma 1830 f m
+node admin.js bot selma 1830 f m
+node admin.js bot elsa 1830 f m
+node admin.js bot vera 1830 f m
+
+node admin.js bot william 1830 m f
+node admin.js bot noah 1830 m f
+node admin.js bot hugo 1830 m f
+node admin.js bot liam 1830 m f
+node admin.js bot adam 1830 m f
+
+node admin.js bot anna 4150 f m
+
+
+
  */
 
-const usage = 'usage: node admin.js [geo_install,geo_install_test,clear_db, bots]';
+const usage = 'usage: node admin.js [geo_install,geo_install_test,clear_db, bots, test]';
 if(process.argv < 3){
     return console.log(usage);
 }
@@ -151,6 +199,9 @@ switch(process.argv[2]){
     case 'geo_install_test': geo_install_test().catch(console.log); break;
     case 'clear_db': clear_db().catch(console.log); break;
     case 'bots': bots().catch(console.log); break;
+    case 'test': test().catch(console.log); break;
+    case 'bot': single_bot().catch(console.log); break;
+
 
     default: console.log(usage);
 }

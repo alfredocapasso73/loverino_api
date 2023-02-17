@@ -6,8 +6,13 @@ const fs = require('fs');
 const helper = require("./helper");
 
 const storeUserImage = async (req, user_id) => {
-    await sharp(req.file.path).resize(50, 50).toFile(process.env.IMAGE_UPLOAD_PATH + '/tiny-' + req.file.filename);
-    await sharp(req.file.path).resize(200, 200).toFile(process.env.IMAGE_UPLOAD_PATH + '/small-' + req.file.filename);
+    const resize_tiny = { width: 50, height: 50, fit: 'contain' };
+    const resize_small = { width: 200, height: 200, fit: 'contain' };
+    const resize_big = { width: 800, fit: 'contain' };
+
+    await sharp(req.file.path).resize(resize_tiny).toFile(process.env.IMAGE_UPLOAD_PATH + '/tiny-' + req.file.filename);
+    await sharp(req.file.path).resize(resize_small).toFile(process.env.IMAGE_UPLOAD_PATH + '/small-' + req.file.filename);
+    await sharp(req.file.path).resize(resize_big).toFile(process.env.IMAGE_UPLOAD_PATH + '/big-' + req.file.filename);
     const filename = req.file.filename.replace('picture-', '');
     await User.updateOne({_id: user_id},  {$addToSet: {"pictures": [filename]}});
     const foundUser = await User.find({_id: user_id});
@@ -31,7 +36,11 @@ const imageFilter = function(req, file, cb) {
         req.fileValidationError = 'only_images_allowed';
         return cb(new Error('only_images_allowed'), false);
     }
-    if (!file.size > 100000000) {
+    /*if (!file.size > 100000000) {
+        req.fileValidationError = 'max_size_10_mb';
+        return cb(new Error('max_size_10_mb'), false);
+    }*/
+    if (file.size > 1048576) {
         req.fileValidationError = 'max_size_10_mb';
         return cb(new Error('max_size_10_mb'), false);
     }
@@ -60,7 +69,7 @@ exports.deletePicture = async (req, res) => {
 };
 
 exports.uploadPicture = async (req, res) => {
-    let upload = multer({ storage: storage, fileFilter: imageFilter, limits: { fileSize: 2000000 }  }).single('picture');
+    let upload = multer({ storage: storage, fileFilter: imageFilter, limits: { fileSize: 10485760 }  }).single('picture');
     upload(req, res, async function(err) {
         if(!req?.user?._id && !req?.body?.user_id){
             return res.status(500).json({error: "missing_user"});
