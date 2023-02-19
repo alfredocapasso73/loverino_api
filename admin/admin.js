@@ -3,7 +3,6 @@ const mongoose = require("mongoose");
 const path = require("path");
 const fs = require('fs');
 const admin_helper = require('./admin_helper');
-const chokidar = require('chokidar');
 const ArchivedCompetitions = require("../models/archived_competition");
 const ArchivedSuggestion = require("../models/archived_suggestion");
 const CanceledMatch = require("../models/canceled_match");
@@ -17,12 +16,14 @@ const Region = require("../models/region");
 const Suggestion = require("../models/suggestion");
 const User = require("../models/user");
 const WinnerUser = require("../models/winner_user");
+let db_connection;
 
 const connectToDb = async () => {
     try{
         mongoose.set('strictQuery', false);
-        await mongoose.connect(process.env.MONGO_DB, {useNewUrlParser: true,useUnifiedTopology: true,});
+        db_connection = await mongoose.connect(process.env.MONGO_DB, {useNewUrlParser: true,useUnifiedTopology: true,});
         console.log(`Connected to database ${process.env.MONGO_DB}`);
+        return db_connection;
     }
     catch(ex){
         throw new Error(`Could not connect to database: ${ex}`);
@@ -100,6 +101,23 @@ const clear_db = async () => {
     }
 }
 
+const populate_bts = async () => {
+    if(process.argv.length !== 6){
+        return console.log('usage: node admin.js populate_bts [age_category, gender,search_gender]');
+    }
+    const age_category = process.argv[3];
+    const gender = process.argv[4];
+    const search_gender = process.argv[5];
+    try{
+        await connectToDb();
+        await admin_helper.populate_bts(age_category,gender,search_gender);
+        process.exit(1);
+    }
+    catch(ex){
+        throw new Error(`Something went wrong: ${ex}`);
+    }
+}
+
 const single_bot = async () => {
     if(process.argv.length !== 7){
         return console.log('usage: node admin.js bot [name,age_category, gender,search_gender]');
@@ -132,6 +150,17 @@ const bots = async () => {
         await installRegionsAndCities();
         await admin_helper.createBots();
         console.log("bots DONE");
+        process.exit(1);
+    }
+    catch(ex){
+        throw new Error(`Something went wrong: ${ex}`);
+    }
+}
+
+const generateBots = async () => {
+    try{
+        await connectToDb();
+        await admin_helper.generateBots();
         process.exit(1);
     }
     catch(ex){
@@ -172,6 +201,7 @@ node admin.js clear_db
 node admin.js test
 
 
+
 node admin.js bot alice 1830 f m
 node admin.js bot alma 1830 f m
 node admin.js bot selma 1830 f m
@@ -187,10 +217,24 @@ node admin.js bot adam 1830 m f
 node admin.js bot anna 4150 f m
 
 
+node admin.js populate_bts 1830 f f
 
- */
+node admin.js populate_bts 3140 f f
 
-const usage = 'usage: node admin.js [geo_install,geo_install_test,clear_db, bots, test]';
+node admin.js populate_bts 4150 f f
+
+node admin.js populate_bts 5060 f f
+
+
+node admin.js clear_db
+
+node admin.js geo_install
+
+node admin.js generateBots
+
+*/
+
+const usage = 'usage: node admin.js [geo_install,geo_install_test,clear_db, bots, test, populate_bts, generateBots]';
 if(process.argv < 3){
     return console.log(usage);
 }
@@ -201,6 +245,9 @@ switch(process.argv[2]){
     case 'bots': bots().catch(console.log); break;
     case 'test': test().catch(console.log); break;
     case 'bot': single_bot().catch(console.log); break;
+    case 'populate_bts': populate_bts().catch(console.log); break;
+    case 'generateBots': generateBots().catch(console.log); break;
+
 
 
     default: console.log(usage);

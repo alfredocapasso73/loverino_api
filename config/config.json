@@ -3,9 +3,9 @@
     "picture","small-picture","tiny-picture"
   ],
   "max_number_of_suggestion": 4,
-  "list_users_default_per_page": 2,
+  "list_users_default_per_page": 12,
   "list_users_default_page_number": 1,
   "description_max_number_of_chars": 500,
-  "number_of_minutes_between_suggestions": 360,
-  "number_of_minutes_between_suggestions_for_paying_users": 180
+  "number_of_minutes_between_suggestions": 120,
+  "number_of_minutes_between_suggestions_for_paying_users": 60
 }
