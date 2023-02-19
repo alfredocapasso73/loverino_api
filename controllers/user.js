@@ -302,11 +302,13 @@ exports.signup = async (req, res) => {
         }
 
         const activation_string = helper.generateUuid();
+        const ip_address = req.socket.remoteAddress || '';
 
         const user = new User({
             name: req.body.name
             ,email: req.body.email
             ,password: bcrypt.hashSync(req.body.password, 8)
+            ,signup_ip_address: ip_address
             ,activation_string: activation_string
         });
         const createdUser = await user.save();

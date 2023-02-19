@@ -114,6 +114,9 @@ const userSchema = new Schema({
     room: {
         type: String
     },
+    signup_ip_address: {
+        type: String
+    },
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);
