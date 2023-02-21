@@ -1,19 +1,14 @@
 const express = require("express");
 const cors = require('cors');
+const app = express();
+app.use(express.json({limit: '50mb'}));
+app.use(cors());
 
 const userRoute = require("./routes/user");
 const geoRoute = require("./routes/geo");
 const suggestionRoute = require("./routes/suggestion");
 const texasRoute = require("./routes/texas");
 
-const app = express();
-//app.use(express.static('tmp_images'))
-
-
-//app.use(express.json());
-app.use(express.json({limit: '50mb'}));
-
-app.use(cors())
 
 const multer  = require('multer');
 const upload = multer({ dest: './tmp_images/' })

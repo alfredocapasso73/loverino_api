@@ -8,6 +8,8 @@
   "USER_SIGNUP": "/signup",
   "USER_SIGNIN": "/signin",
   "USER_REFRESH_TOKEN": "/refreshToken",
+  "USER_API_TOKEN": "/apiToken",
+  "USER_ADD_PICTURE": "/addPicture",
   "USER_FORGOT_PASSWORD": "/forgotPassword",
   "USER_ACTIVATE": "/activate",
   "USER_RESEND_ACTIVATION_LINK": "/resendActivationLink",

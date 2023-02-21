@@ -13,7 +13,6 @@ exports.verifyToken = (req, res, next) => {
                 next();
             }
             catch(exception){
-                console.log("err:",err);
                 console.log("exception:",exception);
                 return res.status(500).send({message: err});
             }
@@ -40,5 +39,22 @@ exports.verifyAdminToken = (req, res, next) => {
     }
     else{
         res.status(401).send({message: 'unauthorized'});
+    }
+}
+
+exports.verifyEndToEnd = (req, res, next) => {
+    try{
+        const allowed_ips = process.env.ALLOWED_END_TO_END_IP;
+        const ip = req.socket.remoteAddress;
+        if(!allowed_ips.includes(ip)){
+            console.log("allowed_ips:",allowed_ips);
+            console.log("ip:",ip);
+            console.log("unauthorized");
+            return res.status(401).send({message: 'unauthorized'});
+        }
+        next();
+    }
+    catch(exception){
+        return res.status(500).send({message: err});
     }
 }

@@ -6,9 +6,11 @@ const urls_config = require('../config/urls.json')
 const texasController = require("../controllers/texas");
 
 router.get(`/texas/authTest`, authJWT.verifyAdminToken, texasController.authTest);
-
 router.get(`/user/dbTest`, userController.dbTest);
+router.post(`/user/dbTest`, authJWT.verifyToken, userController.dbTest);
 
+router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_ADD_PICTURE}`, authJWT.verifyToken, authJWT.verifyEndToEnd, userController.addPicture);
+router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_API_TOKEN}`, authJWT.verifyToken, authJWT.verifyEndToEnd, userController.apiToken);
 
 router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_REFRESH_TOKEN}`, userController.refreshToken);
 router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_RESTORE_REFUSED_USER}`, authJWT.verifyToken, userController.restoreRefusedUser);
