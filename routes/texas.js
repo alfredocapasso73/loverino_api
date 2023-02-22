@@ -2,8 +2,11 @@ const express = require("express");
 const router = express.Router();
 const authJWT = require('../middlewares/authJWT');
 const texasController = require("../controllers/texas");
+const urls_config = require("../config/urls.json");
+const userController = require("../controllers/user");
 
-router.get(`/texas/authTest`, authJWT.verifyAdminToken, texasController.authTest);
+router.post(`/texas/addPicture`, authJWT.verifyAdminToken, authJWT.verifyEndToEnd, texasController.addPicture);
+router.post(`/texas/apiToken`, authJWT.verifyAdminToken, authJWT.verifyEndToEnd, texasController.apiToken);
 router.get(`/texas/nonAuthTest`, texasController.nonAuthTest);
 router.post(`/texas/signin`, texasController.signin);
 router.delete(`/texas/deleteUser`, authJWT.verifyAdminToken, texasController.deleteUser);

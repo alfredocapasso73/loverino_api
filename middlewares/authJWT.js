@@ -33,7 +33,7 @@ exports.verifyAdminToken = (req, res, next) => {
                 next();
             }
             catch(exception){
-                return res.status(500).send({message: err});
+                return res.status(500).send({message: exception});
             }
         });
     }

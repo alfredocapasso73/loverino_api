@@ -5,9 +5,13 @@ const City = require('../models/city');
 const image_handler = require('../helpers/image_handler');
 const user_handler = require('../helpers/user_handler');
 
-exports.authTest = async (req, res) => {
+exports.addPicture = async (req, res) => {
+    return user_handler.addPicture(req, res, req.body.user_id);
+};
+
+exports.apiToken = async (req, res) => {
     try{
-        return res.status(200).send({message: "authTest"});
+        return res.status(200).send({message: "ok"});
     }
     catch(exception){
         console.log(exception);

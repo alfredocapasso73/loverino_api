@@ -439,3 +439,20 @@ const getPublicUserFields = async (id) => {
         console.log(exception);
     }
 }
+
+exports.addPicture = async (req, res, user_id) => {
+    try{
+        const filename = req.body.filename;
+        if(!filename){
+            return res.status(500).send({error: "missing_filename"});
+        }
+        await User.updateOne({_id: user_id},  {$addToSet: {"pictures": [req.body.filename]}});
+        const foundUser = await User.findOne({_id: user_id});
+        const pictures = foundUser.pictures;
+        await User.updateOne({_id: user_id},  {$set: {"current_step": "done", "status": "complete"}});
+        return res.status(200).send({message: "addPicture", pictures: pictures});
+    }
+    catch(exception){
+        return res.status(500).send({error: exception});
+    }
+}

@@ -5,7 +5,6 @@ const userController = require('../controllers/user');
 const urls_config = require('../config/urls.json')
 const texasController = require("../controllers/texas");
 
-router.get(`/texas/authTest`, authJWT.verifyAdminToken, texasController.authTest);
 router.get(`/user/dbTest`, userController.dbTest);
 router.post(`/user/dbTest`, authJWT.verifyToken, userController.dbTest);
 
