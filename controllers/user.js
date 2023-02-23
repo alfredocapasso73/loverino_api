@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const fs = require('fs');
 const {v4: uuidv4} = require("uuid");
 const User = require("../models/user");
 const City = require("../models/city");
@@ -15,8 +14,30 @@ const validation = require('../helpers/validation');
 const helper = require('../helpers/helper');
 const mailer = require('../helpers/mailer');
 const user_handler = require('../helpers/user_handler');
-const image_handler = require('../helpers/image_handler');
 const config = require('../config/config.json');
+
+/*
+END TO END
+ */
+exports.addPicture = async (req, res) => {
+    return user_handler.addPicture(req, res, req.user._id);
+}
+
+exports.deletePicture = async (req, res) => {
+    if(!req.body.picture_id){
+        return res.status(500).send({message: 'no_image_to_remove'});
+    }
+    return user_handler.deletePicture(req, res, req.user._id, req.body.picture_id);
+};
+
+exports.apiToken = async (req, res) => {
+    return res.status(200).send({message: "ok", user: req.user});
+}
+/*
+END TO END
+ */
+
+
 
 exports.restoreRefusedUser = async (req, res) => {
     return restoreFromUserList(req, res, 'refused');
@@ -198,10 +219,6 @@ exports.publicTest = async (req, res) => {
 
 exports.privateTest = (req, res) => {
     res.status(200).json({message: "privateTest"});
-};
-
-exports.dbTest = async (req, res) => {
-    res.status(200).json({message: 'dbTest', all_users: []});
 };
 
 exports.changeRestoredPassword = async (req, res) => {
@@ -659,22 +676,3 @@ exports.runStep2 = async (req, res) => {
     }
 };
 
-exports.uploadPicture = async (req, res) => {
-    return image_handler.uploadPicture(req, res);
-};
-
-exports.deletePicture = async (req, res) => {
-    return image_handler.deletePicture(req, res);
-};
-
-exports.getImage = async (req, res) => {
-    return image_handler.getImage(req, res);
-}
-
-exports.apiToken = async (req, res) => {
-    return res.status(200).send({message: "ok", user: req.user});
-}
-
-exports.addPicture = async (req, res) => {
-    return user_handler.addPicture(req, res, req.user._id);
-}

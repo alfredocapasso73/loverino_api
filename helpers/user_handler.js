@@ -456,3 +456,23 @@ exports.addPicture = async (req, res, user_id) => {
         return res.status(500).send({error: exception});
     }
 }
+
+exports.deletePicture = async (req, res, user_id, picture_id) => {
+    try{
+        const foundUser = await User.find({_id: user_id, pictures: { $elemMatch: {$eq: picture_id} }});
+        if(!foundUser.length){
+            return res.status(500).json({error: 'image_not_found'});
+        }
+        const deleteResult = await User.updateOne({ _id: user_id }, {
+            $pullAll: {pictures: [picture_id]},
+        });
+        if(!deleteResult.acknowledged){
+            return res.status(500).json({error: 'something_went_wrong'});
+        }
+        return res.status(200).send({message: "ok"});
+    }
+    catch(exception){
+        console.log(exception);
+        return res.status(500).send({message: exception});
+    }
+};

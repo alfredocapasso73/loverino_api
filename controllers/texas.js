@@ -2,11 +2,20 @@ const jwt = require("jsonwebtoken");
 const User = require('../models/user');
 const Region = require('../models/region');
 const City = require('../models/city');
-const image_handler = require('../helpers/image_handler');
 const user_handler = require('../helpers/user_handler');
 
+/*
+END TO END
+ */
 exports.addPicture = async (req, res) => {
     return user_handler.addPicture(req, res, req.body.user_id);
+};
+
+exports.deletePicture = async (req, res) => {
+    if(!req.body.picture_id){
+        return res.status(500).send({message: 'no_image_to_remove'});
+    }
+    return user_handler.deletePicture(req, res, req.body.user_id, req.body.picture_id);
 };
 
 exports.apiToken = async (req, res) => {
@@ -18,17 +27,9 @@ exports.apiToken = async (req, res) => {
         return res.status(500).send({message: exception});
     }
 };
-
-exports.nonAuthTest = async (req, res) => {
-    try{
-        console.log('are we here');
-        return res.status(200).send({message: "nonAuthTest"});
-    }
-    catch(exception){
-        console.log(exception);
-        return res.status(500).send({message: exception});
-    }
-};
+/*
+END TO END
+ */
 
 exports.signin = async (req, res) => {
     try{
@@ -151,12 +152,4 @@ exports.deleteUser = async (req, res) => {
         console.log(exception);
         return res.status(500).send({message: exception});
     }
-};
-
-exports.deletePicture = async (req, res) => {
-    return image_handler.deletePicture(req, res);
-};
-
-exports.uploadPictureAdmin = async (req, res) => {
-    return image_handler.uploadPicture(req, res);
 };
