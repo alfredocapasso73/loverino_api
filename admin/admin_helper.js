@@ -483,7 +483,7 @@ exports.generateBots = async () => {
         const active = true;
         const description = '';
 
-        const bts_folder = `/Users/alfredocapasso/loverino/loverino_api/admin/bts`;
+        const bts_folder = `/Users/alfredocapasso/loverino/api/admin/bts`;
         console.log("bts_folder",bts_folder);
         const bts_folder_dirs = fs.readdirSync(bts_folder);
 
@@ -559,9 +559,12 @@ const  storePictures = async (from_dirname) => {
             const picture_name = 'picture-' + name;
             const from_name = path.join(from_dirname, file);
             const to_name = path.join(to_dirname, picture_name);
-            await sharp(from_name).resize(50, 50).toFile(to_dirname + '/tiny-picture-' + name);
-            await sharp(from_name).resize(200, 200).toFile(to_dirname + '/small-picture-' + name);
-            await sharp(from_name).resize(800, 800).toFile(to_dirname + '/big-picture-' + name);
+            const resize_tiny = { width: 50, height: 50, fit: 'contain' };
+            const resize_small = { width: 200, height: 200, fit: 'contain' };
+            const resize_big = { width: 800, fit: 'contain' };
+            await sharp(from_name).resize(resize_tiny).toFile(to_dirname + '/tiny-picture-' + name);
+            await sharp(from_name).resize(resize_small).toFile(to_dirname + '/small-picture-' + name);
+            await sharp(from_name).resize(resize_big).toFile(to_dirname + '/big-picture-' + name);
             fs.copyFileSync(from_name, to_name);
             pictures.push(name);
             console.log("name: ",name);

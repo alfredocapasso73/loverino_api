@@ -226,11 +226,21 @@ node admin.js populate_bts 4150 f f
 node admin.js populate_bts 5060 f f
 
 
+TODO ON PRODUCTION:
+
 node admin.js clear_db
 
 node admin.js geo_install
 
 node admin.js generateBots
+
+AND MOVE UPLOAD FOLDER FROM API TO IMAGES LIKE::::
+
+
+
+mv /Users/alfredocapasso/loverino/api/upload /Users/alfredocapasso/loverino/images/upload
+
+mv /Users/alfredocapasso/loverino/images/upload/upload/ /Users/alfredocapasso/loverino/images/
 
 */
 
