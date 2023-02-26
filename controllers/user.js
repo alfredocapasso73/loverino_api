@@ -214,7 +214,7 @@ exports.publicTestImage = async (req, res) => {
 };
 
 exports.publicTest = async (req, res) => {
-    res.status(200).json({message: "publicTest"});
+    res.status(200).json({message: "A_Public_Test"});
 };
 
 exports.privateTest = (req, res) => {
