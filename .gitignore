@@ -4,3 +4,4 @@ admin/pics
 admin/bts
 .DS_Store
 admin/.DS_Store
+admin/.env
