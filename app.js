@@ -2,7 +2,21 @@ const express = require("express");
 const cors = require('cors');
 const app = express();
 app.use(express.json({limit: '50mb'}));
-app.use(cors());
+
+const cors_origins = [];
+if(process.env.IS_LOCAL){
+    cors_origins.push('http://texas.localoverino.se:8080');
+    cors_origins.push('http://localoverino.se:8080');
+}
+else{
+    cors_origins.push('https://www.loverino.se');
+    cors_origins.push('https://loverino.se');
+    cors_origins.push('https://texas.loverino.se');
+}
+app.use(cors({
+    origin: cors_origins,
+    methods: ['GET','POST','DELETE','UPDATE','PUT','PATCH']
+}));
 
 const userRoute = require("./routes/user");
 const geoRoute = require("./routes/geo");
