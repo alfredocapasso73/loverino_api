@@ -3,16 +3,15 @@ const cors = require('cors');
 const app = express();
 app.use(express.json({limit: '50mb'}));
 
-const cors_origins = [];
-if(process.env.IS_LOCAL){
-    cors_origins.push('http://texas.localoverino.se:8080');
-    cors_origins.push('http://localoverino.se:8080');
-}
-else{
-    cors_origins.push('https://www.loverino.se');
-    cors_origins.push('https://loverino.se');
-    cors_origins.push('https://texas.loverino.se');
-}
+const cors_origins =
+    [
+        "https://localoverino.se:8080"
+        ,"https://texas.localoverino.se:8080"
+        ,"https://loverino.se"
+        ,"https://www.loverino.se"
+        ,"https://texas.loverino.se"
+    ];
+
 app.use(cors({
     origin: cors_origins,
     methods: ['GET','POST','DELETE','UPDATE','PUT','PATCH']
@@ -23,30 +22,13 @@ const geoRoute = require("./routes/geo");
 const suggestionRoute = require("./routes/suggestion");
 const texasRoute = require("./routes/texas");
 
-
-const multer  = require('multer');
-const upload = multer({ dest: './tmp_images/' })
-
 app.get("/", (req, res) => {
     res.status(200).json({ alive: "True" });
-});
-
-app.post('/stats', upload.single('uploaded_file'), function (req, res) {
-    // req.file is the name of your file in the form above, here 'uploaded_file'
-    // req.body will hold the text fields, if there were any
-    console.log(req.file, req.body);
-    res.status(200).json({ fatto: "giafatto" });
-});
-
-
-app.get("/api/v1/alive", (req, res) => {
-    res.status(200).json({alive: true});
 });
 
 app.use("/api/v1", userRoute);
 app.use("/api/v1", geoRoute);
 app.use("/api/v1", suggestionRoute);
 app.use("/api/v1", texasRoute);
-
 
 module.exports = app;
