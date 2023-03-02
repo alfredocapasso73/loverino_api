@@ -49,7 +49,9 @@ const generateSuggestions = async (user) => {
         where._id = {"$nin": array_of_ids_to_remove};
 
         console.log("where",JSON.stringify(where));
-        const results = await User.find(where).limit(config.max_number_of_suggestion).lean();
+        //Just in case aggregate would not work...
+        //const results = await User.find(where).limit(config.max_number_of_suggestion).lean();
+        const results = await User.aggregate([{ $match: where },{ $sample: { size: config.max_number_of_suggestion } }]);
         return results;
     }
     catch(exception){
