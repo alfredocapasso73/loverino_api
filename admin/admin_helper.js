@@ -483,7 +483,7 @@ exports.generateBots = async () => {
         const active = true;
         const description = '';
 
-        const bts_folder = `/Users/alfredocapasso/loverino/api/admin/bts`;
+        const bts_folder = process.env.BTS_FOLDER;
         console.log("bts_folder",bts_folder);
         const bts_folder_dirs = fs.readdirSync(bts_folder);
 
