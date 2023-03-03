@@ -17,6 +17,7 @@ END TO END
 router.post(`/texas/signin`, texasController.signin);
 router.delete(`/texas/deleteUser`, authJWT.verifyAdminToken, texasController.deleteUser);
 router.post(`/texas/getUsers`, authJWT.verifyAdminToken, texasController.getUsers);
+router.post(`/texas/getMatches`, authJWT.verifyAdminToken, texasController.getMatches);
 router.get(`/texas/user/:id`, authJWT.verifyAdminToken, texasController.getUser);
 router.post(`/texas/user`, authJWT.verifyAdminToken, texasController.saveUser);
 router.post(`/texas/searchUser`, authJWT.verifyAdminToken, texasController.searchUser);

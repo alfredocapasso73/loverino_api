@@ -4,6 +4,7 @@ const PerhapsUser = require("../models/perhaps_user");
 const RefusedUser = require("../models/refused_user");
 const WinnerUser = require("../models/winner_user");
 const Suggestion = require("../models/suggestion");
+const Partner = require("../models/partners");
 const helper = require("./helper");
 const mailer = require("./mailer");
 const User = require("../models/user");
@@ -145,6 +146,8 @@ const matchCanceled = async (user_leaving_id, user_left_id) => {
         await WinnerUser.deleteMany({for_user_id: user_leaving_id, winner_id: user_left_id});
         await WinnerUser.deleteMany({for_user_id: user_left_id, winner_id: user_leaving_id});
 
+        await Partner.deleteMany({users: { $elemMatch: {$eq: user_leaving_id} }});
+
         const canceled_match = new CanceledMatch({for_user_id: user_left_id, canceling_id: user_leaving_id});
         await canceled_match.save();
     }
@@ -207,17 +210,20 @@ const matchTwoUsersIfApplicable = async (user_id_1, user_id_2) => {
             console.log("false on user2?.current_match");
             return false;
         }
+        const partners = new Partner({users: [user_id_1, user_id_2]});
+        await partners.save();
         const room = uuidv4();
         await User.updateOne({_id: user_id_1}, {$set: {current_match: user_id_2, room: room}});
         if(user1?.notify_new_match){
             console.log("send mail for match");
             await mailer.newMatchEmail(user1);
         }
+        await User.updateOne({_id: user_id_2}, {$set: {current_match: user_id_1, room: room}});
         if(user2?.notify_new_match){
             await mailer.newMatchEmail(user2);
             console.log("send mail for match");
         }
-        await User.updateOne({_id: user_id_2}, {$set: {current_match: user_id_1, room: room}});
+
         return true;
     }
     catch(exception){

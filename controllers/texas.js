@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require('../models/user');
+const Partner = require('../models/partners');
 const Region = require('../models/region');
 const City = require('../models/city');
 const user_handler = require('../helpers/user_handler');
@@ -43,6 +44,31 @@ exports.signin = async (req, res) => {
         }
         const admin_token = jwt.sign({username: process.env.ADMIN_USERNAME}, process.env.ADMIN_API_SECRET, {expiresIn: 86400});
         return res.status(200).send({message: "ok", admin_token: admin_token});
+    }
+    catch(exception){
+        console.log(exception);
+        return res.status(500).send({message: exception});
+    }
+};
+
+exports.getMatches = async (req, res) => {
+    try{
+        const matches_per_page = req?.body?.matches_per_page || 10;
+        const current_page = req?.body?.current_page || 10;
+        const count = await Partner.count({});
+        const skip = (matches_per_page*current_page)-(matches_per_page);
+        const tmp_partners = await Partner.find({}).limit(matches_per_page).skip(skip).lean();
+        const partners = [];
+        for await (const prtn of tmp_partners){
+            if(prtn?.users?.length === 2){
+                const user1_id = prtn.users[0];
+                const user2_id = prtn.users[1];
+                const user1 = await User.findOne({_id: user1_id});
+                const user2 = await User.findOne({_id: user2_id});
+                partners.push({user1: user1,user2: user2});
+            }
+        }
+        return res.status(200).send({message: "ok", count: count, partners: partners});
     }
     catch(exception){
         console.log(exception);
