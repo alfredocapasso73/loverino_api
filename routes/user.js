@@ -16,8 +16,10 @@ END TO END
 
 
 router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_REFRESH_TOKEN}`, userController.refreshToken);
+router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_RESTORE_WINNER_USER}`, authJWT.verifyToken, userController.restoreWinnerUser);
 router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_RESTORE_REFUSED_USER}`, authJWT.verifyToken, userController.restoreRefusedUser);
 router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_RESTORE_FAVORITE_USER}`, authJWT.verifyToken, userController.restoreFavoriteUser);
+router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_GET_WINNER_USERS}`, authJWT.verifyToken, userController.getWinnerUsers);
 router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_GET_FAVORITE_USERS}`, authJWT.verifyToken, userController.getFavoriteUsers);
 router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_GET_REFUSED_USERS}`, authJWT.verifyToken, userController.getRefusedUsers);
 router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_UNREAD_MESSAGES}`, authJWT.verifyToken, userController.unreadChatMessages);

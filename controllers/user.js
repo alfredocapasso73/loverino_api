@@ -10,6 +10,7 @@ const Chat = require('../models/chat');
 const RefusedUser = require('../models/refused_user');
 const LikedUser = require('../models/liked_user');
 const PerhapsUser = require('../models/perhaps_user');
+const WinnerUser = require('../models/winner_user');
 const validation = require('../helpers/validation');
 const helper = require('../helpers/helper');
 const mailer = require('../helpers/mailer');
@@ -39,6 +40,10 @@ END TO END
 
 
 
+exports.restoreWinnerUser = async (req, res) => {
+    return restoreFromUserList(req, res, 'winners');
+};
+
 exports.restoreRefusedUser = async (req, res) => {
     return restoreFromUserList(req, res, 'refused');
 };
@@ -59,6 +64,10 @@ const restoreFromUserList = async (req, res, caller) => {
                 $pull: {users: restore_id},
             });
             await LikedUser.updateOne({for_user_id: user._id}, {$push: {users: restore_id}}, {upsert: true});
+        }
+        else if(caller === 'winners'){
+            await WinnerUser.deleteOne({ for_user_id: user._id, winner_id: restore_id });
+            await RefusedUser.updateOne({for_user_id: user._id}, {$push: {users: restore_id}}, {upsert: true});
         }
         else{
             await LikedUser.updateOne({ for_user_id: user._id }, {
@@ -86,10 +95,19 @@ const getListOfUsers = async (req, res, caller) => {
         let users_found = false;
         let nr_of_pages = 0;
         let array_with_users = [];
+
         if(caller === 'refused'){
             const refused = await RefusedUser.findOne({for_user_id: user._id});
             if(refused && refused?.users?.length){
                 array_with_users = [...new Set(refused.users)];
+            }
+        }
+        else if(caller === 'winners'){
+            const winners = await WinnerUser.find({for_user_id: user._id});
+            if(winners.length){
+                winners.forEach(el => {
+                    array_with_users.push(el.winner_id.toString());
+                });
             }
         }
         else{
@@ -99,10 +117,17 @@ const getListOfUsers = async (req, res, caller) => {
                 const liked_user_array = liked?.users?.length ? liked.users : [];
                 const perhaps_user_array = perhaps?.users?.length ? perhaps.users : [];
                 const both_arrays = liked_user_array.concat(perhaps_user_array);
-                array_with_users = [...new Set(both_arrays)];
+                const unique = [...new Set(both_arrays)];
+                for await (const un of unique){
+                    const winner = await WinnerUser.findOne({for_user_id: user._id, winner_id: mongoose.Types.ObjectId(un)});
+                    if(!winner){
+                        array_with_users.push(un);
+                    }
+                }
             }
         }
         if(array_with_users?.length){
+            console.log("array_with_users",array_with_users);
             const func_result = await user_handler.getUsersList(array_with_users, users_per_page, current_page);
             user_list = func_result.users_list;
             nr_of_pages = func_result.nr_of_pages;
@@ -122,6 +147,10 @@ exports.getRefusedUsers = async (req, res) => {
 
 exports.getFavoriteUsers = async (req, res) => {
     return getListOfUsers(req, res, 'favorites');
+};
+
+exports.getWinnerUsers = async (req, res) => {
+    return getListOfUsers(req, res, 'winners');
 };
 
 exports.getChatHistory = async (req, res) => {
@@ -331,7 +360,9 @@ exports.signup = async (req, res) => {
         const createdUser = await user.save();
         await mailer.welcomeEmail(createdUser);
         const returnUser = (({ _id,name, activation_string }) => ({ _id,name, activation_string }))(createdUser);
-        await mailer.adminNewSignup(user);
+        if(process.env?.ENVIRONMENT !== 'local'){
+            await mailer.adminNewSignup(user);
+        }
 
         res.status(200).send({message: "signup_ok", returnUser: returnUser});
     }
@@ -663,7 +694,9 @@ exports.runStep2 = async (req, res) => {
             return res.status(400).send({errors: validation.errors});
         }
         const description = req.body.description || '';
-        validation.set.current_step = 'step3';
+        //validation.set.current_step = 'step3';
+        validation.set.current_step = 'done';
+        validation.set.status = 'complete';
         validation.set.description = helper.formatDescription(description);
 
         const updatedUser = await User.updateOne({_id: req.user._id}, {$set: validation.set});
