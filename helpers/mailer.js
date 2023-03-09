@@ -8,7 +8,7 @@ const fs = require("fs");
 const sendMail = async (html, subject, to) => {
     const message = {
         to: to
-        ,from: 'no-reply@loverino.se'
+        ,from: 'loverino@amaranto.se'
         ,subject: subject
         ,html: html
     }
@@ -18,6 +18,7 @@ const sendMail = async (html, subject, to) => {
     }
     catch(exception){
         console.log("Exception when sending email:",exception);
+        console.log(JSON.stringify(exception));
     }
 }
 
