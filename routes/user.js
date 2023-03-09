@@ -47,4 +47,6 @@ router.get(`${urls_config.USER_URI_PREFIX}${urls_config.USER_PRIVATE_TEST}`, aut
 router.get(`${urls_config.USER_URI_PREFIX}${urls_config.USER_PUBLIC_TEST}`, userController.publicTest);
 router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_FORGOT_PASSWORD}`, userController.forgotPassword);
 
+router.post(`${urls_config.USER_URI_PREFIX}${urls_config.USER_GET_IN_TOUCH}`, userController.getInTouch);
+
 module.exports = router;

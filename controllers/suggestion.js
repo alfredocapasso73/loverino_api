@@ -137,6 +137,7 @@ exports.voteSuggestion = async (req, res) => {
         const json_options = {upsert: true};
 
         let user_status_in_suggestion = '';
+        //alfio
         switch(vote){
             case 'y':
                 await LikedUser.updateOne(json_filter, json_update, json_options);
@@ -145,6 +146,8 @@ exports.voteSuggestion = async (req, res) => {
                 break;
             case 'n':
                 await RefusedUser.updateOne(json_filter, json_update, json_options);
+                await PerhapsUser.updateOne({ for_user_id: for_user_id }, {$pull: {users: voted_user_id}});
+                await LikedUser.updateOne({ for_user_id: for_user_id }, {$pull: {users: voted_user_id}});
                 user_status_in_suggestion = 'refused';
                 break;
             default:

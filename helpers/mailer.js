@@ -8,7 +8,7 @@ const fs = require("fs");
 const sendMail = async (html, subject, to) => {
     const message = {
         to: to
-        ,from: 'alfredo@amaranto.se'
+        ,from: 'no-reply@loverino.se'
         ,subject: subject
         ,html: html
     }
@@ -38,6 +38,19 @@ exports.mailTest = async () => {
     const html = (template({name: 'jeeg robot'}));
     const to = 'alfredo.capasso@gmail.com';
     const subject = 'predicato verbale';
+    await sendMail(html, subject, to);
+};
+
+exports.adminGetInTouch = async (email, message) => {
+    setMailHeaderAndFooter();
+    const filename = path.join(__dirname, `/../templates/admin-get-in-touch.handlebars`);
+    const emailTemplate = fs.readFileSync(filename, "utf-8");
+    const template = handlebars.compile(emailTemplate)
+    const html = (template({
+        email: email,message: message
+    }));
+    const to = process.env.ADMIN_MAIL_ON_NOTIFICATION;
+    const subject = "Get in touch";
     await sendMail(html, subject, to);
 };
 

@@ -31,8 +31,14 @@ const generateSuggestions = async (user) => {
         array_of_ids_to_remove.push(user._id);
 
         const users_i_refused = await RefusedUser.findOne({for_user_id: user._id});
+        console.log("users_i_refused",users_i_refused);
         if(users_i_refused && users_i_refused.users){
-            array_of_ids_to_remove = array_of_ids_to_remove.concat(users_i_refused.users);
+            const refused_users = [];
+            users_i_refused.users.map(el => {
+                refused_users.push(mongoose.Types.ObjectId(el));
+            });
+            array_of_ids_to_remove = array_of_ids_to_remove.concat(refused_users);
+            //array_of_ids_to_remove = array_of_ids_to_remove.concat(users_i_refused.users);
         }
         /*
         If we include the users that refused me, there will be too few suggestions
@@ -43,9 +49,11 @@ const generateSuggestions = async (user) => {
         const my_winner_users = await WinnerUser.find({for_user_id: user._id});
         if(my_winner_users && my_winner_users.length){
             const winners = my_winner_users.map(el => el.winner_id);
+            console.log("winners",winners);
             array_of_ids_to_remove = array_of_ids_to_remove.concat(winners);
         }
 
+        console.log("array_of_ids_to_remove",array_of_ids_to_remove);
         where._id = {"$nin": array_of_ids_to_remove};
 
         console.log("where",JSON.stringify(where));

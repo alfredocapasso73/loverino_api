@@ -303,6 +303,20 @@ exports.restore = async (req, res) => {
     }
 };
 
+exports.getInTouch = async (req, res) => {
+    try{
+        const email = req.body.email;
+        const message = req.body.message;
+        await mailer.adminGetInTouch(email, message);
+        res.status(200).json({message: "getInTouch", email: email, message: message});
+    }
+    catch(exception){
+        console.log(exception);
+        return res.status(500).send({message: 'something_went_wrong'});
+    }
+};
+
+
 exports.forgotPassword = async (req, res) => {
     try{
         if(validation.emptyParameter(req, 'email')){
